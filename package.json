@@ -1,0 +1,28 @@
+{
+  "name": "creator-studio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "bench": "node --experimental-strip-types scripts/bench.ts"
+  },
+  "dependencies": {
+    "heic2any": "0.0.4",
+    "jszip": "3.10.2",
+    "mp4-muxer": "5.2.2",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
