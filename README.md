@@ -62,6 +62,9 @@ Start with **New user** in the demo panel left of the phone.
      Aesthetics / Templates / Reels), each previewed on Mia's photos. **See all** opens the
      full Explore screen. Trends open the chat, templates open the template, and looks make
      a post in that style from your best photos (Free: preview · Pro: full post).
+   - **Your posts** at the bottom: past posts made with Creator Studio (cover in its look,
+     format, where it was posted, when). Anything you share in the demo appears first,
+     marked "New".
 3. **Bring a link.** The link field is pre-filled with a TikTok link; tap **Go**.
    - *Reading the post…* (about 1.5 s): cuts and pacing, the look, text on screen, length.
    - **We found the format:** "Reel · 7 cuts · 12 s · film flash look · text on beat 2".

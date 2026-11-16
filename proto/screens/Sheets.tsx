@@ -85,7 +85,24 @@ export function ShareSheet() {
   const pick = (name: string) => {
     setOpening(name);
     setTimeout(() => {
-      set((st) => ({ posted: st.posted + 1, lastShare: { platform: name, format } }));
+      set((st) => ({
+        posted: st.posted + 1,
+        lastShare: { platform: name, format },
+        madePosts: st.draft
+          ? [
+              {
+                photo: st.draft.spec.photos[0],
+                aesthetic: st.draft.spec.aesthetic,
+                format,
+                label: st.draft.name ?? st.draft.title,
+                when: "Just now",
+                platform: name,
+                photos: st.draft.spec.photos.length,
+              },
+              ...st.madePosts,
+            ].slice(0, 6)
+          : st.madePosts,
+      }));
       closeSheet();
       reset({ name: "success" });
     }, 1100);

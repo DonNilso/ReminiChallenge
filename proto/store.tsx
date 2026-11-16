@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FORMATS, SUGGESTIONS, TRENDS, aesthetic, type Format } from "./data.ts";
+import { FORMATS, SUGGESTIONS, TRENDS, aesthetic, type Format, type PastPost } from "./data.ts";
 import type { Spec } from "./brain.ts";
 
 // ---------------------------------------------------------------- screens
@@ -56,6 +56,7 @@ export type DemoState = {
   freeDraftsUsed: number; // free plan: 1 full draft per week
   draft: Draft | null;
   lastShare: { platform: string; format: Format } | null;
+  madePosts: PastPost[]; // posts shared in this demo, shown first in "Your posts"
 };
 
 export const INITIAL: DemoState = {
@@ -71,6 +72,7 @@ export const INITIAL: DemoState = {
   freeDraftsUsed: 0,
   draft: null,
   lastShare: null,
+  madePosts: [],
 };
 
 export const FREE_EDITS = 3;

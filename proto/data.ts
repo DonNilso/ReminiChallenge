@@ -352,15 +352,15 @@ export const HUB = {
 };
 
 // ---------------------------------------------------------------- Mia's past posts (made with Creator Studio)
-export type PastPost = { photo: string; aesthetic: string; format: Format; label: string; when: string };
+export type PastPost = { photo: string; aesthetic: string; format: Format; label: string; when: string; platform: string; photos: number };
 
 export const PAST_POSTS: PastPost[] = [
-  { photo: "wk-beach", aesthetic: "golden-hour", format: "carousel", label: "Beach day", when: "Last week" },
-  { photo: "fri-red", aesthetic: "film-flash", format: "reel", label: "Friday flash", when: "Last week" },
-  { photo: "wk-venice", aesthetic: "old-money", format: "carousel", label: "Venice", when: "2 weeks ago" },
-  { photo: "wk-pink", aesthetic: "soft-glam", format: "story", label: "GRWM", when: "2 weeks ago" },
-  { photo: "wk-coffee", aesthetic: "clean-girl", format: "story", label: "Sunday coffee", when: "3 weeks ago" },
-  { photo: "wk-hike", aesthetic: "90s", format: "carousel", label: "Dolomites", when: "3 weeks ago" },
+  { photo: "wk-beach", aesthetic: "golden-hour", format: "carousel", label: "Beach day", when: "1w ago", platform: "Instagram", photos: 6 },
+  { photo: "fri-red", aesthetic: "film-flash", format: "reel", label: "Friday flash", when: "1w ago", platform: "TikTok", photos: 7 },
+  { photo: "wk-venice", aesthetic: "old-money", format: "carousel", label: "Venice", when: "2w ago", platform: "Instagram", photos: 8 },
+  { photo: "wk-pink", aesthetic: "soft-glam", format: "story", label: "GRWM", when: "2w ago", platform: "Instagram", photos: 4 },
+  { photo: "wk-coffee", aesthetic: "clean-girl", format: "story", label: "Sunday coffee", when: "3w ago", platform: "WhatsApp Status", photos: 3 },
+  { photo: "wk-hike", aesthetic: "90s", format: "carousel", label: "Dolomites", when: "3w ago", platform: "Instagram", photos: 9 },
 ];
 
 // ---------------------------------------------------------------- bring a link

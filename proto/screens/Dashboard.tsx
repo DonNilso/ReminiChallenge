@@ -12,6 +12,7 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
   const left = Math.max(0, s.goal - s.posted);
   // Suggestions in the user's chosen platforms first.
   const suggestions = SUGGESTIONS.filter((x) => FORMATS[x.format].platforms.some((p) => s.platforms.includes(p)) || x.format === "carousel");
+  const allPosts = [...s.madePosts, ...PAST_POSTS];
   const rising = [...TRENDS].sort((a, b) => Number(b.id === s.trendToTry) - Number(a.id === s.trendToTry) || b.growth - a.growth);
 
   return (
@@ -67,14 +68,14 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
             ))}
             {s.aesthetics.length > 2 && <span className="chip">+{s.aesthetics.length - 1}</span>}
           </div>
-          <div className="past-mini" data-testid="past-posts" title={`Your posts: ${PAST_POSTS.length} made with Creator Studio`}>
-            {PAST_POSTS.slice(0, 4).map((pp) => (
-              <Shot key={pp.photo} src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className="past-th" />
+          <div className="past-mini" data-testid="past-posts" title={`Your posts: ${allPosts.length} made with Creator Studio`}>
+            {allPosts.slice(0, 4).map((pp, i) => (
+              <Shot key={`${pp.photo}-${i}`} src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className="past-th" />
             ))}
             <span className="past-more">
               Your posts
               <br />
-              {PAST_POSTS.length}
+              {allPosts.length}
             </span>
           </div>
         </div>
@@ -166,6 +167,27 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         ))}
       </div>
 
+      {/* the creator's posts */}
+      <div className="sec" data-testid="your-posts">
+        <h2>Your posts</h2>
+        <span className="sec-note">{allPosts.length} made with Creator Studio</span>
+      </div>
+      <div className="yp-grid">
+        {allPosts.map((pp, i) => (
+          <div key={`${pp.photo}-${i}`} className="yp" data-testid="yp">
+            <Shot src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className="yp-img">
+              <span className="fmt">
+                {pp.format !== "carousel" && <IconPlay size={10} />} {FORMATS[pp.format].label.split(" ")[0]}
+              </span>
+              {pp.when === "Just now" && <span className="x-badge hot">New</span>}
+            </Shot>
+            <span className="yp-name">{pp.label}</span>
+            <span className="yp-meta">
+              {pp.platform} · {pp.when}
+            </span>
+          </div>
+        ))}
+      </div>
       <div style={{ height: 40 }} />
     </div>
   );
