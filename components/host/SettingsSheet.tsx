@@ -70,7 +70,7 @@ export default function SettingsSheet({ onClose, onMock }: { onClose: () => void
           <span className="set-row-ic">
             <IconLayers />
           </span>
-          <span style={{ flex: 1 }}>Your sets</span>
+          <span style={{ flex: 1 }}>Your posts & preferences</span>
           <IconChevron size={18} />
         </Link>
         <button className="set-row" onClick={onMock}>

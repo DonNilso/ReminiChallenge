@@ -129,3 +129,8 @@ h1 { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02e
 video.preview { width: 100%; border-radius: var(--radius-tile); background: var(--card); aspect-ratio: 4/5; margin-top: 12px; }
 .error { background: rgba(217,45,80,.15); border: 1px solid var(--accent); color: #fff; border-radius: 14px; padding: 12px 14px; font-size: 14px; margin: 12px 0; }
 .link { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 8px 0; font-size: 14px; }
+img.sw { object-fit: cover; }
+.badge.for-you { background: #fff; color: #000; }
+.trend-stats { color: #c7c7cc; font-size: 12.5px; margin-top: 6px; }
+.trend-why { color: var(--accent); font-size: 12.5px; font-weight: 600; margin-top: 3px; }
+.trend .row { flex-wrap: wrap; }

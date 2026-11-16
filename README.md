@@ -6,8 +6,9 @@ A product-case-study prototype that tests one technical claim:
 > trip) and return them enhanced in **one consistent, on-trend look**, ready to post as an
 > Instagram carousel.
 
-Trend detection, profiles and scheduling are out of scope. The six trends are hard-coded in
-[`data/trends.json`](data/trends.json).
+Trend detection and scheduling are out of scope. The nine trends (the six from the brief
+plus three seasonal ones) and their trend signals (hashtag, post count, weekly growth) are
+hard-coded, illustrative data in [`data/trends.json`](data/trends.json).
 
 **Status:** the app, the export, the video and the Modal GPU service are built and tested. The
 GPU model has **not** been run yet: the sandbox this was built in had no Modal account and no
@@ -30,25 +31,35 @@ phone frame; on a phone it is full screen.
 | Integration point | Where | What it does |
 |---|---|---|
 | Dock "NEW" slot | Bottom dock, last item | The gradient tile with the "NEW" badge is where the app promotes a new feature. Creator Studio takes it and opens the studio home |
-| Home section | Second section on Home, after Retouch photos | "Creator Studio 🎞️ NEW" with a "Make a set" pill, in the same row pattern as the trend and modeling-pack rows. The first tile, "Your weekend", starts a set; the trend tiles start a set with the look preselected (`/studio/new?trend=<id>`) |
+| Home section | Second section on Home, after Retouch photos | "Creator Studio 🎞️ NEW" with a "Create a post" pill, in the same row pattern as the trend and modeling-pack rows. The first tile, "Your weekend", starts a post; the trend tiles (in the user's personal ranking) start a post with the look preselected (`/studio/new?trend=<id>`) |
 | Search | Search bar | Queries like "carousel", "trend", "instagram" or "weekend" surface Creator Studio |
-| Settings | Settings sheet (gear or avatar) | A "Creator Studio" card with "Your sets" and the default export format |
+| Settings | Settings sheet (gear or avatar) | A "Creator Studio" card with "Your posts & preferences" and the default export format |
 | Paywall | Results, on Share / Download ZIP / Download video | Mock PRO sheet ("Start 7-day free trial"): previews are free, export needs a trial. This is where production would switch from cheap previews to full-resolution renders |
 | Share to Instagram | Results | Real Web Share API with the 1080×1350 files, so on a phone it opens the system share sheet with Instagram. Hidden where the browser can't share files |
 
-### Creator Studio home (`/studio`)
+### Creator Studio dashboard (`/studio`)
 
-The feature's own home screen, which the dock, the section pill, search and settings open:
+The feature's own home, which the dock, the section pill, search and settings open. Creators
+make **posts** (a carousel of 3–10 photos in one look):
 
-- **New set.** A big "Make a new set" card for first-time users; a compact "New set" row once
-  they have sets, so their sets come first.
-- **Trends this week.** Tapping one starts a set with that look preselected.
-- **Your sets.** Every finished set is saved automatically (photos before and after,
-  trend, date) and shown as cards with the cover photo, photo count and how long ago. Tapping
-  a card reopens it (`/studio/set/<id>`) with before/after, the carousel, re-share,
-  re-download and delete. Sets live in **IndexedDB in the user's browser only**: still nothing is
-  stored on the server, so sets don't sync between devices. The newest 12 are kept.
-- **Empty state.** Explains the three steps before the first set.
+- **Account and preferences.** Handle, connected platforms (Instagram, TikTok), stats
+  (posts made, this week's posts against a weekly goal, best time to post) and preferences:
+  what they post (Travel, City, Food, Friends, Nature, Nightlife, Fashion) and which looks they
+  like (Warm, Cool, Film, Clean, Bold). "Edit" opens the preferences sheet. Connecting a real
+  account is mocked; preferences live in `localStorage`.
+- **Create a post.** Starts the create flow.
+- **Proposed for you.** The top three trends for this creator, as big cards with hashtag, post
+  count and *why* each is proposed ("Matches Travel & City · Film look you like · +38% this
+  week · In season"). "Use this look" starts a post with that look preselected. The ranking
+  (`lib/shared/recommend.ts`) weighs content match most, then look match, then momentum
+  (rising, weekly growth) and season, and it's unit-tested. The same ranking orders the trend
+  step ("For you" badges) and the Creator Studio row on Home.
+- **All trends this week.** The remaining trends with their weekly growth.
+- **Your posts.** Every finished post is saved automatically (photos before and after,
+  trend, date) and shown with its cover, photo count and age. Tapping one reopens it
+  (`/studio/post/<id>`) with before/after, the carousel, re-share, re-download and delete.
+  Posts live in **IndexedDB in the user's browser only**: still nothing is stored on the
+  server, so posts don't sync between devices. The newest 12 are kept.
 
 The `from=` query parameter marks the entry point. Nothing reads it yet; it's there to show
 where attribution would be logged. The mock trial is stored in `localStorage`
@@ -207,7 +218,7 @@ the meantime.
 | | |
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
-| `npm test` | 16 unit tests: pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric |
+| `npm test` | 22 unit tests: pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric, trend data, trend ranking |
 | `npm run lint` | `tsc --noEmit` |
 | `npm run bench -- <folder> [trend]` | Feasibility benchmark (below) |
 | `pytest modal_app` | Offline tests for the Python helpers: output sizing, decoding, Lab conversion, colour lock |
@@ -260,8 +271,8 @@ $0.10–$0.90 per run.
   configured.
 - **Privacy:** on the server side, photos live only in memory (API route, Modal container)
   for the duration of the request. Nothing is written to disk or logged, apart from model
-  weights in the Modal Volume. Finished sets are kept in the user's own browser (IndexedDB) for
-  "Your sets"; deleting a set or clearing site data removes them.
+  weights in the Modal Volume. Finished posts and preferences are kept in the user's own browser (IndexedDB and
+  localStorage) for the dashboard; deleting a post or clearing site data removes them.
 
 ---
 
@@ -277,7 +288,7 @@ $0.10–$0.90 per run.
 | Export | ZIP holds `styled/*.jpg` (full size) and `instagram-1080x1350/*.jpg` (all exactly 1080×1350), plus the video if one was made |
 | Video | H.264 High profile, 1080×1350, 30 fps, **15.000 s, 450 frames**, keyframes at 0, 1.5, 3, … 13.5 s. Rendering in the browser takes a few seconds on a laptop |
 | Does a fixed filter make a set consistent? | **Barely.** Applying the same grade to 5 unrelated photos changed the "look spread" (mean ΔE of each photo's average Lab colour from the set average) from 16.3 to between 11.9 and 21.2, depending on the trend. Y2K flash *increased* spread. A preset alone doesn't unify a set, which is why the anchor-reference approach is needed. |
-| Colour lock on top (deterministic, measured on the same outputs) | Cut look spread by **about 28 % at strength 0.35** and **about 45 % at 0.6** for all six trends (for example Golden hour 16.5 to 11.6 to 8.4). 0.35 is the default because higher values start to wash out real differences between scenes, such as a sunset next to a daytime shot. |
+| Colour lock on top (deterministic, measured on the same outputs) | Cut look spread by **about 28 % at strength 0.35** and **about 45 % at 0.6** for all six original trends (for example Golden hour 16.5 to 11.6 to 8.4). 0.35 is the default because higher values start to wash out real differences between scenes, such as a sunset next to a daytime shot. |
 
 ### To measure with the real model
 
@@ -288,7 +299,7 @@ doesn't decode HEIC, so convert those first), deploy the Modal app, then run:
 npm run bench -- ./my-weekend
 ```
 
-It runs all six trends through the same pipeline the app uses and writes the images plus
+It runs all nine trends through the same pipeline the app uses and writes the images plus
 `bench-results/<time>/report.json`. Fill in this table from it:
 
 | Metric | Where it comes from | Result |
@@ -342,16 +353,16 @@ app/
   layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges), phone frame
   host.css                  styles for the host-app mock
   page.tsx                  host-app mock home
-  studio/page.tsx           Creator Studio home: new set, trends this week, your sets
+  studio/page.tsx           Creator Studio dashboard: account & preferences, proposed trends, your posts
   studio/new/page.tsx       create flow (reads ?trend= to preselect a look)
-  studio/set/[id]/page.tsx  a saved set: compare, carousel, share/export, delete
+  studio/post/[id]/page.tsx a saved post: compare, carousel, share/export, delete
   api/style/route.ts        POST one photo (+ optional reference) and trendId, returns the styled JPEG
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
-components/                 Studio (create flow), StudioHome, SetDetail, UploadStep, TrendStep, ProcessingStep,
+components/                 Studio (create flow), StudioHome (dashboard), PrefsSheet, PostDetail, UploadStep, TrendStep, ProcessingStep,
                             ResultsStep, Paywall + usePaywall
 components/host/            host-app mock: HomeScreen (search, sections), Dock, SettingsSheet, icons, toast
 public/mock/                pre-rendered images for the mock (see SOURCES.md)
-data/trends.json            the 6 trends: name, description, rising/steady, style prompt, demo grade
+data/trends.json            the 9 trends: name, description, rising/steady, trend signals (meta), style prompt, demo grade
 lib/
   prompt.ts                 identity-preserving prompt; Picture 1 / Picture 2 roles
   trends.ts
@@ -363,7 +374,10 @@ lib/
   server/providers/         modal.ts (HTTP client), demo.ts (sharp grade), index.ts (choose)
   client/images.ts          HEIC, EXIF, 1600 px downscale (< 1.8 MB), 1080x1350 crop/pad
   client/styleApi.ts        calls /api/style for one photo
-  client/setsStore.ts       saved sets in IndexedDB (on device only, newest 12)
+  client/postsStore.ts      saved posts in IndexedDB (on device only, newest 12)
+  client/prefsStore.ts      account & preferences in localStorage
+  shared/prefs.ts           preference options and defaults, best time to post
+  shared/recommend.ts       "Proposed for you" ranking with reasons
   client/zip.ts             JSZip export
   client/video.ts           15 s Ken Burns slideshow, WebCodecs to MP4 (MediaRecorder fallback)
 modal_app/restyle.py        Modal GPU service (Qwen-Image-Edit-2511 + Lightning, colour lock)

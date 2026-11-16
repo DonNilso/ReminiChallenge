@@ -1,6 +1,6 @@
 import type { PreparedPhoto } from "@/lib/client/images.ts";
 
-export type TrendCard = { id: string; name: string; description: string; status: "rising" | "steady"; swatch: string[] };
+export type { PublicTrend as TrendCard } from "@/lib/trends.ts";
 
 export type SlotStatus = "queued" | "processing" | "retrying" | "done" | "error";
 

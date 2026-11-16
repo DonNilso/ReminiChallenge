@@ -22,7 +22,7 @@ export default function UploadStep({ photos, preparing, error, onAdd, onRemove }
   return (
     <section>
       <h1>Your weekend, one look.</h1>
-      <p className="sub">Add 3–10 real photos from the same trip. We keep the people and the moment exactly as they were, and give the whole set one on-trend look.</p>
+      <p className="sub">Add 3–10 real photos from the same trip. We keep the people and the moment exactly as they were, and give the whole post one on-trend look.</p>
 
       {!full && (
         <div

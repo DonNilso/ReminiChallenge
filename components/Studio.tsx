@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { preparePhoto, type PreparedPhoto } from "@/lib/client/images.ts";
 import { styleViaApi } from "@/lib/client/styleApi.ts";
 import { runStyleSet, type PipelineEvent } from "@/lib/shared/pipeline.ts";
-import { saveSet } from "@/lib/client/setsStore.ts";
+import { savePost } from "@/lib/client/postsStore.ts";
+import { loadPrefs } from "@/lib/client/prefsStore.ts";
+import { DEFAULT_PREFS, type Prefs } from "@/lib/shared/prefs.ts";
 import Link from "next/link";
 import { IconBack } from "./host/icons.tsx";
 import { usePaywall } from "./usePaywall.tsx";
@@ -24,6 +26,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [trendId, setTrendId] = useState<string | null>(initialTrendId);
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [saved, setSaved] = useState<boolean | null>(null);
   const [stats, setStats] = useState<RunStats | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
@@ -34,6 +37,8 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
 
   const paywall = usePaywall(slots);
 
+  useEffect(() => setPrefs(loadPrefs()), []);
+
   // Which backend is active (shown in the header).
   useEffect(() => {
     fetch("/api/warmup")
@@ -43,7 +48,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
   }, []);
 
   // Pre-warm a GPU container as soon as the user adds photos, so the cold start
-  // overlaps with picking photos and a trend instead of with "Make my set".
+  // overlaps with picking photos and a trend instead of with "Create my post".
   const warmup = useCallback(() => {
     if (warmed.current) return;
     warmed.current = true;
@@ -60,7 +65,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
     if (take.length === 0) return;
     setPreparing((n) => n + take.length);
     // Decode in parallel but keep the user's order: it is the carousel order, and the
-    // first photo becomes the style anchor for the set.
+    // first photo becomes the style anchor for the post.
     const prepared = await Promise.all(
       take.map((f) =>
         preparePhoto(f).catch(() => {
@@ -90,7 +95,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
     const patch = (index: number, update: Partial<Slot>) =>
       setSlots((prev) => prev.map((s, i) => (i === index ? { ...s, ...update } : s)));
 
-    // Same seed for every photo of the set.
+    // Same seed for every photo of the post.
     const seed = Math.floor(Math.random() * 2 ** 31);
     let final: Extract<PipelineEvent<Blob>, { type: "done" }> | null = null;
     const durations: number[] = [];
@@ -140,9 +145,9 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
         avgMs: durations.reduce((a, b) => a + b, 0) / Math.max(1, durations.length),
       });
       setStep("results");
-      // Save the finished set on this device for the studio home ("Your sets").
+      // Save the finished post on this device for the studio dashboard ("Your posts").
       setSaved(null);
-      saveSet({
+      savePost({
         id: crypto.randomUUID(),
         createdAt: Date.now(),
         trendId: trend.id,
@@ -196,7 +201,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
         </div>
       )}
       {step === "upload" && <UploadStep photos={photos} preparing={preparing} error={uploadError} onAdd={addFiles} onRemove={removePhoto} />}
-      {step === "trend" && <TrendStep trends={trends} selected={trendId} onSelect={setTrendId} count={photos.length} />}
+      {step === "trend" && <TrendStep trends={trends} prefs={prefs} selected={trendId} onSelect={setTrendId} count={photos.length} />}
       {step === "processing" && (
         <>
           <ProcessingStep slots={slots} trendName={trend?.name ?? ""} provider={provider ?? ""} />
@@ -214,7 +219,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
         <>
           {saved && (
             <div className="chip" data-testid="saved-chip">
-              ✓ Saved to Your sets · on this device only
+              ✓ Saved to Your posts · on this device only
             </div>
           )}
           <ResultsStep slots={slots} trendId={trend.id} trendName={trend.name} stats={stats} onRestart={restart} gate={paywall.gate} />
@@ -238,7 +243,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
               Back
             </button>
             <button className="pill" disabled={!trend} onClick={run}>
-              Make my set
+              Create my post
             </button>
           </div>
         </div>

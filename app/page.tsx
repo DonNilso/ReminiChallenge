@@ -1,7 +1,7 @@
 import HomeScreen from "@/components/host/HomeScreen.tsx";
-import { TRENDS } from "@/lib/trends.ts";
+import { publicTrends } from "@/lib/trends.ts";
 
 export default function Home() {
-  const trends = TRENDS.map(({ id, name, description, status, swatch }) => ({ id, name, description, status, swatch }));
+  const trends = publicTrends(); // style prompts stay on the server
   return <HomeScreen trends={trends} />;
 }

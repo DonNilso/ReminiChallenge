@@ -9,7 +9,7 @@ export default function ProcessingStep({ slots, trendName, provider }: { slots: 
 
   return (
     <section>
-      <h1>Making your set</h1>
+      <h1>Creating your post</h1>
       <p className="sub">{trendName} look</p>
       <div className="big" data-testid="progress-count">
         {done} of {slots.length} done
@@ -19,8 +19,8 @@ export default function ProcessingStep({ slots, trendName, provider }: { slots: 
       </div>
       <p className="note">
         {!anchorDone
-          ? "Styling the first photo. It sets the look that the rest of the set will match."
-          : "Matching the rest of the set to the first photo’s look."}
+          ? "Styling the first photo. It sets the look that the rest of your photos will match."
+          : "Matching the rest of your photos to the first photo’s look."}
         {provider === "modal" && !anchorDone && " The first run after a break can take a minute or two while the GPU starts."}
       </p>
       <div className="grid">

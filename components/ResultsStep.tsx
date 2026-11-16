@@ -50,7 +50,7 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
 
   const onShare = () => {
     if (!igFiles) return;
-    navigator.share({ files: igFiles, title: `My ${trendName} set` }).catch((e: Error) => {
+    navigator.share({ files: igFiles, title: `My ${trendName} post` }).catch((e: Error) => {
       if (e.name !== "AbortError") setError(`Couldn’t open the share sheet: ${e.message}`);
     });
   };
@@ -100,7 +100,7 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
 
   return (
     <section>
-      <h1>Your {trendName} set</h1>
+      <h1>Your {trendName} post</h1>
       <p className="sub">Tap a photo to compare before and after.</p>
 
       {failed.length > 0 && (
@@ -218,7 +218,7 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
       )}
 
       <button className="link" onClick={onRestart}>
-        Start a new set
+        Create another post
       </button>
     </section>
   );

@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Finished sets, saved in IndexedDB on the user's device only (never on the server).
- * Keeps the newest MAX_SETS sets. Every call fails soft: private browsing or blocked
- * storage just means "no saved sets".
+ * Finished posts, saved in IndexedDB on the user's device only (never on the server).
+ * Keeps the newest MAX_POSTS posts. Every call fails soft: private browsing or blocked
+ * storage just means "no saved posts".
  */
 
-export type SavedSet = {
+export type SavedPost = {
   id: string;
   createdAt: number;
   trendId: string;
@@ -15,8 +15,8 @@ export type SavedSet = {
 };
 
 const DB_NAME = "creator-studio";
-const STORE = "sets";
-export const MAX_SETS = 12;
+const STORE = "sets"; // object-store name kept from the first version so saved posts survive
+export const MAX_POSTS = 12;
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -45,35 +45,35 @@ async function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => ID
   }
 }
 
-export async function listSets(): Promise<SavedSet[]> {
+export async function listPosts(): Promise<SavedPost[]> {
   try {
-    const all = ((await tx<SavedSet[]>("readonly", (s) => s.getAll())) ?? []) as SavedSet[];
+    const all = ((await tx<SavedPost[]>("readonly", (s) => s.getAll())) ?? []) as SavedPost[];
     return all.sort((a, b) => b.createdAt - a.createdAt);
   } catch {
     return [];
   }
 }
 
-export async function getSet(id: string): Promise<SavedSet | null> {
+export async function getPost(id: string): Promise<SavedPost | null> {
   try {
-    return ((await tx<SavedSet>("readonly", (s) => s.get(id))) as SavedSet | undefined) ?? null;
+    return ((await tx<SavedPost>("readonly", (s) => s.get(id))) as SavedPost | undefined) ?? null;
   } catch {
     return null;
   }
 }
 
-export async function saveSet(set: SavedSet): Promise<boolean> {
+export async function savePost(post: SavedPost): Promise<boolean> {
   try {
-    await tx("readwrite", (s) => s.put(set));
-    const all = await listSets();
-    for (const old of all.slice(MAX_SETS)) await deleteSet(old.id);
+    await tx("readwrite", (s) => s.put(post));
+    const all = await listPosts();
+    for (const old of all.slice(MAX_POSTS)) await deletePost(old.id);
     return true;
   } catch {
     return false;
   }
 }
 
-export async function deleteSet(id: string): Promise<void> {
+export async function deletePost(id: string): Promise<void> {
   try {
     await tx("readwrite", (s) => s.delete(id));
   } catch {}

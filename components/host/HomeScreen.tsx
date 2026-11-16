@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { loadPrefs } from "@/lib/client/prefsStore.ts";
+import { DEFAULT_PREFS, type Prefs } from "@/lib/shared/prefs.ts";
+import { proposeTrends } from "@/lib/shared/recommend.ts";
 import type { TrendCard } from "../types.ts";
 import Dock from "./Dock.tsx";
 import { IconCamera, IconChat, IconFaceScan, IconGallery, IconGear, IconSearch, IconUser } from "./icons.tsx";
@@ -13,7 +16,7 @@ import { MOCK_MSG, useToast } from "./Toast.tsx";
 export const HOST_APP_NAME = "Photo AI";
 
 const SEARCH_ITEMS = [
-  { label: "Creator Studio", hint: "One look for your whole carousel", keywords: "creator studio carousel set trend look instagram post weekend trip filter preset", href: "/studio?from=search" },
+  { label: "Creator Studio", hint: "One look for your whole carousel", keywords: "creator studio carousel post trend look instagram post weekend trip filter preset", href: "/studio?from=search" },
   { label: "Enhance", hint: "Make any photo HD", keywords: "enhance hd sharpen quality blur", href: null },
   { label: "AI Photos", hint: "Generate new photos of you", keywords: "ai photos avatar headshot model", href: null },
   { label: "AI Filter", hint: "Restyle a single photo", keywords: "ai filter style cartoon", href: null },
@@ -28,6 +31,10 @@ export default function HomeScreen({ trends }: { trends: TrendCard[] }) {
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [enhanceTab, setEnhanceTab] = useState<"photos" | "videos">("photos");
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  useEffect(() => setPrefs(loadPrefs()), []);
+  // Same personal ranking as the Creator Studio dashboard.
+  const ranked = useMemo(() => proposeTrends(trends, prefs).map((p) => p.trend), [trends, prefs]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -106,7 +113,7 @@ export default function HomeScreen({ trends }: { trends: TrendCard[] }) {
         title="Creator Studio"
         emoji="🎞️"
         badge="New"
-        action="Make a set"
+        action="Create a post"
         onAction={() => router.push("/studio?from=home_section")}
         testId="studio-section"
       />
@@ -120,10 +127,10 @@ export default function HomeScreen({ trends }: { trends: TrendCard[] }) {
           </div>
           <span className="weekend-text">
             <b>Your weekend</b>
-            <small>Turn it into a set</small>
+            <small>Turn it into a post</small>
           </span>
         </Link>
-        {trends.map((t) => (
+        {ranked.map((t) => (
           <Link key={t.id} href={`/studio/new?trend=${t.id}&from=home_trends`} className="pack-tile">
             <img src={`/mock/trend-${t.id}.jpg`} alt="" />
             {t.status === "rising" && <span className="badge rising pack-badge">Rising</span>}

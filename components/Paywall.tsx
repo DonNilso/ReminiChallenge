@@ -4,7 +4,7 @@ import type { Slot } from "./types.ts";
 
 /**
  * Mock PRO paywall shown before export/share. In production this is where cost is
- * controlled: previews are cheap low-resolution renders, and the full-resolution set
+ * controlled: previews are cheap low-resolution renders, and the full-resolution post
  * is only rendered once a trial or subscription has started.
  */
 export default function Paywall({ slots, onStart, onClose }: { slots: Slot[]; onStart: () => void; onClose: () => void }) {
@@ -19,12 +19,12 @@ export default function Paywall({ slots, onStart, onClose }: { slots: Slot[]; on
           ))}
         </div>
         <div className="label" style={{ color: "var(--accent)" }}>PRO</div>
-        <div style={{ fontSize: 24, fontWeight: 600, margin: "4px 0 12px" }}>Post your set in full quality</div>
+        <div style={{ fontSize: 24, fontWeight: 600, margin: "4px 0 12px" }}>Post it in full quality</div>
         <ul className="paywall-list">
           <li>Full-resolution photos, no watermark</li>
           <li>Instagram-ready 1080×1350 carousel</li>
           <li>15-second slideshow video</li>
-          <li>Unlimited Creator Studio sets</li>
+          <li>Unlimited Creator Studio posts</li>
         </ul>
         <button className="pill block" onClick={onStart} data-testid="start-trial">
           Start 7-day free trial

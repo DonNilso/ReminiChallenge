@@ -9,15 +9,17 @@ import { applyGrade } from "../lib/server/providers/demo.ts";
 import { getProvider } from "../lib/server/providers/index.ts";
 import { TRENDS } from "../lib/trends.ts";
 
-test("trends.json has the six required trends with full style prompts", () => {
-  assert.deepEqual(
-    TRENDS.map((t) => t.name),
-    ["Film grain", "Golden hour", "Old money", "Clean & minimal", "Candid", "Y2K flash"],
-  );
+test("trends.json has the six required trends plus seasonal ones, with prompts and trend signals", () => {
+  const names = TRENDS.map((t) => t.name);
+  for (const n of ["Film grain", "Golden hour", "Old money", "Clean & minimal", "Candid", "Y2K flash"]) assert.ok(names.includes(n), n);
+  assert.equal(new Set(TRENDS.map((t) => t.id)).size, TRENDS.length);
   for (const t of TRENDS) {
     assert.ok(["rising", "steady"].includes(t.status));
     assert.ok(t.description.length > 10);
     assert.ok(t.stylePrompt.split(" ").length > 40, `${t.id} prompt too short`);
+    assert.match(t.meta.hashtag, /^#\w+$/);
+    assert.ok(t.meta.interests.length > 0 && t.meta.vibes.length > 0 && t.meta.platforms.length > 0);
+    assert.ok(t.meta.months.every((m) => m >= 1 && m <= 12));
   }
 });
 

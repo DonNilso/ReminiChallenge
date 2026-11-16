@@ -5,54 +5,443 @@
       "name": "Film grain",
       "description": "Faded 35mm film, soft highlights and visible grain.",
       "status": "rising",
-      "swatch": ["#C9A27E", "#5E6B5A", "#2B2A26"],
+      "swatch": [
+        "#C9A27E",
+        "#5E6B5A",
+        "#2B2A26"
+      ],
+      "meta": {
+        "hashtag": "#35mmfilm",
+        "posts": "4.1M",
+        "growth": 38,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Travel",
+          "City",
+          "Friends"
+        ],
+        "vibes": [
+          "Film",
+          "Warm"
+        ],
+        "months": [],
+        "bestFor": "City trips, photo dumps"
+      },
       "stylePrompt": "Analog 35mm film look like Kodak Portra 400 shot on a point-and-shoot. Slightly lifted, matte blacks; soft rolled-off highlights that never clip; warm skin tones; gently muted greens shifted towards olive; cyan-teal tint in the shadows. Low-to-medium contrast. Fine, even, organic film grain across the whole frame, more visible in midtones and shadows. Very subtle halation glow around bright light sources. Natural, nostalgic, candid mood.",
-      "demo": { "brightness": 1.03, "saturation": 0.82, "hue": 0, "tint": [255, 236, 214], "tintAmount": 0.12, "contrast": 0.88, "lift": 18, "grain": 14, "vignette": 0.15 }
+      "demo": {
+        "brightness": 1.03,
+        "saturation": 0.82,
+        "hue": 0,
+        "tint": [
+          255,
+          236,
+          214
+        ],
+        "tintAmount": 0.12,
+        "contrast": 0.88,
+        "lift": 18,
+        "grain": 14,
+        "vignette": 0.15
+      }
     },
     {
       "id": "golden-hour",
       "name": "Golden hour",
       "description": "Warm late-afternoon sun, glowing skin, long soft light.",
       "status": "rising",
-      "swatch": ["#F2B35E", "#D9774A", "#5B3A2A"],
+      "swatch": [
+        "#F2B35E",
+        "#D9774A",
+        "#5B3A2A"
+      ],
+      "meta": {
+        "hashtag": "#goldenhour",
+        "posts": "58M",
+        "growth": 12,
+        "platforms": [
+          "Instagram"
+        ],
+        "interests": [
+          "Travel",
+          "Nature",
+          "Friends"
+        ],
+        "vibes": [
+          "Warm"
+        ],
+        "months": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "bestFor": "Beach days, sunsets, summer trips"
+      },
       "stylePrompt": "Golden hour colour grade: the scene looks lit by warm, low late-afternoon sun. Warm amber and honey white balance; highlights pushed towards gold and soft orange; shadows stay warm brown, never blue. Gentle glow and soft bloom on highlights and skin; skin looks healthy and sun-kissed but still natural. Medium contrast with soft shadow transitions. Slight haze. Rich but not neon saturation in oranges, yellows and greens. Dreamy, warm, summer mood.",
-      "demo": { "brightness": 1.06, "saturation": 1.12, "hue": -6, "tint": [255, 196, 120], "tintAmount": 0.2, "contrast": 0.95, "lift": 6, "grain": 0, "vignette": 0.2 }
+      "demo": {
+        "brightness": 1.06,
+        "saturation": 1.12,
+        "hue": -6,
+        "tint": [
+          255,
+          196,
+          120
+        ],
+        "tintAmount": 0.2,
+        "contrast": 0.95,
+        "lift": 6,
+        "grain": 0,
+        "vignette": 0.2
+      }
     },
     {
       "id": "old-money",
       "name": "Old money",
       "description": "Quiet luxury: rich, muted tones and calm elegance.",
       "status": "steady",
-      "swatch": ["#E7DCC8", "#7A6A4F", "#23324A"],
+      "swatch": [
+        "#E7DCC8",
+        "#7A6A4F",
+        "#23324A"
+      ],
+      "meta": {
+        "hashtag": "#oldmoneyaesthetic",
+        "posts": "2.7M",
+        "growth": 6,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Fashion",
+          "City",
+          "Food"
+        ],
+        "vibes": [
+          "Warm",
+          "Clean"
+        ],
+        "months": [],
+        "bestFor": "Brunch, city breaks, outfits"
+      },
       "stylePrompt": "Quiet-luxury editorial grade like a Ralph Lauren or Loro Piana campaign. Refined, muted palette of cream, camel, navy, forest green and soft white; desaturate loud or neon colours towards these tones. Slightly warm, creamy highlights; deep but detailed shadows with a hint of warmth. Medium-soft contrast, polished and clean. Very subtle fine grain. Soft, flattering light. Elegant, timeless, understated mood.",
-      "demo": { "brightness": 1.02, "saturation": 0.7, "hue": 4, "tint": [236, 222, 196], "tintAmount": 0.15, "contrast": 0.95, "lift": 8, "grain": 4, "vignette": 0.12 }
+      "demo": {
+        "brightness": 1.02,
+        "saturation": 0.7,
+        "hue": 4,
+        "tint": [
+          236,
+          222,
+          196
+        ],
+        "tintAmount": 0.15,
+        "contrast": 0.95,
+        "lift": 8,
+        "grain": 4,
+        "vignette": 0.12
+      }
     },
     {
       "id": "clean-minimal",
       "name": "Clean & minimal",
       "description": "Bright, airy and true-to-life, with crisp detail.",
       "status": "steady",
-      "swatch": ["#F4F4F2", "#C9D3D6", "#8A9599"],
+      "swatch": [
+        "#F4F4F2",
+        "#C9D3D6",
+        "#8A9599"
+      ],
+      "meta": {
+        "hashtag": "#minimalaesthetic",
+        "posts": "9.3M",
+        "growth": 4,
+        "platforms": [
+          "Instagram"
+        ],
+        "interests": [
+          "Food",
+          "City",
+          "Fashion"
+        ],
+        "vibes": [
+          "Clean",
+          "Cool"
+        ],
+        "months": [],
+        "bestFor": "Cafés, interiors, everyday"
+      },
       "stylePrompt": "Clean, bright, minimal look. Neutral-to-slightly-cool white balance with pure whites and true-to-life skin tones. Bright exposure with open, airy shadows; low-medium contrast; highlights clean but not blown. Slightly reduced saturation, especially in yellows and greens, for a calm, cohesive palette. Very crisp detail and clean, noise-free surfaces. No grain, no vignette. Fresh, modern, Scandinavian mood.",
-      "demo": { "brightness": 1.1, "saturation": 0.85, "hue": 0, "tint": [228, 238, 246], "tintAmount": 0.08, "contrast": 0.92, "lift": 14, "grain": 0, "vignette": 0 }
+      "demo": {
+        "brightness": 1.1,
+        "saturation": 0.85,
+        "hue": 0,
+        "tint": [
+          228,
+          238,
+          246
+        ],
+        "tintAmount": 0.08,
+        "contrast": 0.92,
+        "lift": 14,
+        "grain": 0,
+        "vignette": 0
+      }
     },
     {
       "id": "candid",
       "name": "Candid",
       "description": "Unposed, true colours, like a friend snapped it.",
       "status": "rising",
-      "swatch": ["#D8C3A5", "#8E8D8A", "#3C4146"],
+      "swatch": [
+        "#D8C3A5",
+        "#8E8D8A",
+        "#3C4146"
+      ],
+      "meta": {
+        "hashtag": "#photodump",
+        "posts": "31M",
+        "growth": 27,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Friends",
+          "Travel",
+          "Food",
+          "Nightlife"
+        ],
+        "vibes": [
+          "Warm",
+          "Film"
+        ],
+        "months": [],
+        "bestFor": "Weekend recaps with friends"
+      },
       "stylePrompt": "Casual candid photo-dump look, like a quick phone snap a friend took. True-to-life colours with very slight warmth, natural available light, gentle real-world contrast. Slight softness and a touch of fine digital noise are fine; do not over-sharpen or over-smooth skin. Minimal grading so it feels authentic, spontaneous and unpolished, but with properly balanced exposure and white balance. Relaxed, genuine, in-the-moment mood.",
-      "demo": { "brightness": 1.02, "saturation": 0.96, "hue": 0, "tint": [255, 240, 225], "tintAmount": 0.06, "contrast": 1.0, "lift": 4, "grain": 6, "vignette": 0.05 }
+      "demo": {
+        "brightness": 1.02,
+        "saturation": 0.96,
+        "hue": 0,
+        "tint": [
+          255,
+          240,
+          225
+        ],
+        "tintAmount": 0.06,
+        "contrast": 1.0,
+        "lift": 4,
+        "grain": 6,
+        "vignette": 0.05
+      }
     },
     {
       "id": "y2k-flash",
       "name": "Y2K flash",
       "description": "Direct on-camera flash, punchy colours, early-2000s party vibe.",
       "status": "rising",
-      "swatch": ["#F2F2F2", "#E0457B", "#101014"],
+      "swatch": [
+        "#F2F2F2",
+        "#E0457B",
+        "#101014"
+      ],
+      "meta": {
+        "hashtag": "#flashphotography",
+        "posts": "6.8M",
+        "growth": 44,
+        "platforms": [
+          "TikTok",
+          "Instagram"
+        ],
+        "interests": [
+          "Nightlife",
+          "Friends",
+          "Fashion"
+        ],
+        "vibes": [
+          "Bold",
+          "Cool"
+        ],
+        "months": [
+          10,
+          11,
+          12,
+          1,
+          2
+        ],
+        "bestFor": "Nights out, parties, concerts"
+      },
       "stylePrompt": "Early-2000s digital point-and-shoot flash look. Subjects in front look lit by a direct on-camera flash: bright, slightly glossy skin and crisp hard-edged shadows directly behind them, while the background falls darker. Cool-neutral white balance, high contrast, punchy saturated colours, deep blacks. A little digital sharpness and slight vignette. Nightlife, party, fun, nostalgic mood. Keep it a lighting and colour treatment only; do not add a date stamp or any text.",
-      "demo": { "brightness": 1.08, "saturation": 1.25, "hue": 0, "tint": [225, 232, 255], "tintAmount": 0.1, "contrast": 1.25, "lift": 0, "grain": 5, "vignette": 0.35 }
+      "demo": {
+        "brightness": 1.08,
+        "saturation": 1.25,
+        "hue": 0,
+        "tint": [
+          225,
+          232,
+          255
+        ],
+        "tintAmount": 0.1,
+        "contrast": 1.25,
+        "lift": 0,
+        "grain": 5,
+        "vignette": 0.35
+      }
+    },
+    {
+      "id": "cozy-autumn",
+      "name": "Cozy autumn",
+      "description": "Warm browns, soft light, sweater-weather mood.",
+      "status": "rising",
+      "swatch": [
+        "#C7884A",
+        "#7A4A2A",
+        "#2E2118"
+      ],
+      "meta": {
+        "hashtag": "#autumnvibes",
+        "posts": "14M",
+        "growth": 22,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Nature",
+          "Food",
+          "Travel",
+          "Friends"
+        ],
+        "vibes": [
+          "Warm",
+          "Film"
+        ],
+        "months": [
+          9,
+          10,
+          11
+        ],
+        "bestFor": "Forest walks, cafés, markets"
+      },
+      "stylePrompt": "Cozy autumn colour grade: warm, earthy palette that pushes foliage and wood tones towards amber, rust and chocolate brown while keeping skin natural. Soft, diffused light as on an overcast autumn afternoon; gently lifted shadows with a warm brown tint; creamy, slightly muted highlights. Medium-low contrast, slightly reduced saturation in blues and greens, rich oranges. Subtle fine grain. Calm, comfortable, sweater-weather mood.",
+      "demo": {
+        "brightness": 1.0,
+        "saturation": 0.92,
+        "hue": -4,
+        "tint": [
+          214,
+          150,
+          96
+        ],
+        "tintAmount": 0.2,
+        "contrast": 0.92,
+        "lift": 10,
+        "grain": 5,
+        "vignette": 0.18
+      }
+    },
+    {
+      "id": "moody-winter",
+      "name": "Moody winter",
+      "description": "Cool blues, deep shadows, quiet Nordic calm.",
+      "status": "rising",
+      "swatch": [
+        "#A9B8C6",
+        "#4A5A6B",
+        "#151B22"
+      ],
+      "meta": {
+        "hashtag": "#winteraesthetic",
+        "posts": "7.9M",
+        "growth": 41,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Travel",
+          "Nature",
+          "City"
+        ],
+        "vibes": [
+          "Cool",
+          "Clean"
+        ],
+        "months": [
+          11,
+          12,
+          1,
+          2
+        ],
+        "bestFor": "Ski trips, snowy cities, Christmas markets"
+      },
+      "stylePrompt": "Moody winter colour grade: cool, desaturated palette with blue-grey shadows and clean, slightly cool whites; keep skin tones natural, never blue or grey. Deep but detailed shadows, soft highlights, medium contrast. Muted greens and reds, warm light sources such as lamps or candles stay gently warm as accents. Very fine grain. Quiet, calm, Scandinavian winter mood.",
+      "demo": {
+        "brightness": 0.98,
+        "saturation": 0.72,
+        "hue": 6,
+        "tint": [
+          176,
+          196,
+          222
+        ],
+        "tintAmount": 0.18,
+        "contrast": 1.05,
+        "lift": 4,
+        "grain": 4,
+        "vignette": 0.22
+      }
+    },
+    {
+      "id": "cinematic",
+      "name": "Cinematic",
+      "description": "Teal-and-orange film still, like a movie frame.",
+      "status": "steady",
+      "swatch": [
+        "#E39B5B",
+        "#2D6E73",
+        "#0E1A1C"
+      ],
+      "meta": {
+        "hashtag": "#cinematicphotography",
+        "posts": "11M",
+        "growth": 9,
+        "platforms": [
+          "Instagram",
+          "TikTok"
+        ],
+        "interests": [
+          "Travel",
+          "City",
+          "Nightlife"
+        ],
+        "vibes": [
+          "Bold",
+          "Film"
+        ],
+        "months": [],
+        "bestFor": "Road trips, city nights"
+      },
+      "stylePrompt": "Cinematic film-still colour grade: classic teal-and-orange look with skin and warm highlights pushed gently towards orange and shadows towards deep teal. Rich, slightly crushed blacks, controlled highlights with soft roll-off, medium-high contrast. Slightly reduced overall saturation except in skin and teal shadows. Fine cinematic grain. Dramatic, story-like mood, as if the photo were a frame from a film. Do not add black bars.",
+      "demo": {
+        "brightness": 1.0,
+        "saturation": 1.0,
+        "hue": 0,
+        "tint": [
+          255,
+          170,
+          110
+        ],
+        "tintAmount": 0.12,
+        "contrast": 1.15,
+        "lift": -4,
+        "grain": 6,
+        "vignette": 0.28
+      }
     }
   ]
 }
