@@ -26,12 +26,26 @@ frame; on a phone it is full screen.
 
 | Integration point | Where | What it does |
 |---|---|---|
-| Launch banner | Home, right under the core Enhance feature | "NEW · Creator Studio, Make a set" opens `/studio?from=home_banner` |
-| Trends for you | Home, horizontal row | Tapping a trend opens `/studio?trend=<id>`: the look is preselected (chip "Look: Old money") and the user only adds photos |
-| Create (+) sheet | Centre of the tab bar | Creator Studio sits next to Enhance and AI Photos as a creation entry point |
-| Profile | Profile tab | Row back into Creator Studio (later: "my sets") |
+| Launch banner | Home, right under the core Enhance feature | "NEW · Creator Studio, Make a set" opens the studio home |
+| Trends for you | Home, horizontal row | Tapping a trend skips the studio home and opens `/studio/new?trend=<id>`: the look is preselected (chip "Look: Old money") and the user only adds photos |
+| Create (+) sheet | Centre of the tab bar | Creator Studio sits next to Enhance and AI Photos; opens the studio home |
+| Profile | Profile tab | Row into the studio home |
 | Paywall | Results, on Share / Download ZIP / Download video | Mock PRO sheet ("Start 7-day free trial"): previews are free, export needs a trial. This is where production would switch from cheap previews to full-resolution renders |
 | Share to Instagram | Results | Real Web Share API with the 1080×1350 files, so on a phone it opens the system share sheet with Instagram. Hidden where the browser can't share files |
+
+### Creator Studio home (`/studio`)
+
+The feature's own home screen, which every entry point except the trend tiles opens:
+
+- **New set.** A big "Make a new set" card for first-time users; a compact "New set" row once
+  they have sets, so their sets come first.
+- **Trends this week.** Tapping one starts a set with that look preselected.
+- **Your sets.** Every finished set is saved automatically (photos before and after,
+  trend, date) and shown as cards with the cover photo, photo count and how long ago. Tapping
+  a card reopens it (`/studio/set/<id>`) with before/after, the carousel, re-share,
+  re-download and delete. Sets live in **IndexedDB in the user's browser only**: still nothing is
+  stored on the server, so sets don't sync between devices. The newest 12 are kept.
+- **Empty state.** Explains the three steps before the first set.
 
 The `from=` query parameter marks the entry point. Nothing reads it yet; it's there to show
 where attribution would be logged. The mock trial is stored in `localStorage`
@@ -241,9 +255,10 @@ $0.10–$0.90 per run.
 - **No auth or rate limiting** on the Next.js API; anyone who can reach a deployed app can
   spend your GPU budget. Add auth or a rate limit before sharing a URL that has Modal
   configured.
-- **Privacy:** photos live only in memory (browser, API route, Modal container) for the
-  duration of the request. Nothing is written to disk or logged, apart from model weights in
-  the Modal Volume.
+- **Privacy:** on the server side, photos live only in memory (API route, Modal container)
+  for the duration of the request. Nothing is written to disk or logged, apart from model
+  weights in the Modal Volume. Finished sets are kept in the user's own browser (IndexedDB) for
+  "Your sets"; deleting a set or clearing site data removes them.
 
 ---
 
@@ -324,10 +339,13 @@ app/
   layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges), phone frame
   host.css                  styles for the host-app mock
   (tabs)/                   host-app mock: Home (page.tsx), ai-photos/, profile/, shared tab bar (layout.tsx)
-  studio/page.tsx           Creator Studio (reads ?trend= to preselect a look)
+  studio/page.tsx           Creator Studio home: new set, trends this week, your sets
+  studio/new/page.tsx       create flow (reads ?trend= to preselect a look)
+  studio/set/[id]/page.tsx  a saved set: compare, carousel, share/export, delete
   api/style/route.ts        POST one photo (+ optional reference) and trendId, returns the styled JPEG
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
-components/                 Studio (state machine), UploadStep, TrendStep, ProcessingStep, ResultsStep, Paywall
+components/                 Studio (create flow), StudioHome, SetDetail, UploadStep, TrendStep, ProcessingStep,
+                            ResultsStep, Paywall + usePaywall
 components/host/            host-app mock: HomeScreen, TabBar + Create sheet, MockScreens, icons, toast
 public/mock/                pre-rendered images for the mock (see SOURCES.md)
 data/trends.json            the 6 trends: name, description, rising/steady, style prompt, demo grade
@@ -342,6 +360,7 @@ lib/
   server/providers/         modal.ts (HTTP client), demo.ts (sharp grade), index.ts (choose)
   client/images.ts          HEIC, EXIF, 1600 px downscale (< 1.8 MB), 1080x1350 crop/pad
   client/styleApi.ts        calls /api/style for one photo
+  client/setsStore.ts       saved sets in IndexedDB (on device only, newest 12)
   client/zip.ts             JSZip export
   client/video.ts           15 s Ken Burns slideshow, WebCodecs to MP4 (MediaRecorder fallback)
 modal_app/restyle.py        Modal GPU service (Qwen-Image-Edit-2511 + Lightning, colour lock)

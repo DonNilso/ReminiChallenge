@@ -106,7 +106,7 @@ export default function HomeScreen({ trends }: { trends: TrendCard[] }) {
       </div>
       <div className="hscroll" data-testid="home-trends">
         {trends.map((t) => (
-          <Link key={t.id} href={`/studio?trend=${t.id}&from=home_trends`} className="trend-tile">
+          <Link key={t.id} href={`/studio/new?trend=${t.id}&from=home_trends`} className="trend-tile">
             <img src={`/mock/trend-${t.id}.jpg`} alt="" />
             {t.status === "rising" && <span className="badge rising trend-tile-badge">Rising</span>}
             <span className="trend-tile-name">{t.name}</span>

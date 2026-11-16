@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { preparePhoto, type PreparedPhoto } from "@/lib/client/images.ts";
 import { styleViaApi } from "@/lib/client/styleApi.ts";
 import { runStyleSet, type PipelineEvent } from "@/lib/shared/pipeline.ts";
+import { saveSet } from "@/lib/client/setsStore.ts";
 import Link from "next/link";
 import { IconBack } from "./host/icons.tsx";
-import Paywall from "./Paywall.tsx";
+import { usePaywall } from "./usePaywall.tsx";
 import ProcessingStep from "./ProcessingStep.tsx";
 import ResultsStep from "./ResultsStep.tsx";
 import TrendStep from "./TrendStep.tsx";
@@ -16,18 +17,14 @@ import UploadStep, { MAX_PHOTOS, MIN_PHOTOS } from "./UploadStep.tsx";
 type Step = "upload" | "trend" | "processing" | "results";
 const STEP_ORDER: Step[] = ["upload", "trend", "processing", "results"];
 
-const TRIAL_KEY = "cs-mock-trial";
-
 export default function Studio({ trends, initialTrendId = null }: { trends: TrendCard[]; initialTrendId?: string | null }) {
   const [step, setStep] = useState<Step>("upload");
   const [photos, setPhotos] = useState<PreparedPhoto[]>([]);
   const [preparing, setPreparing] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [trendId, setTrendId] = useState<string | null>(initialTrendId);
-  // Mock monetisation: previews are free, exporting/sharing needs a (mock) PRO trial.
-  const [trial, setTrial] = useState(false);
-  const [paywallFor, setPaywallFor] = useState<(() => void) | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [saved, setSaved] = useState<boolean | null>(null);
   const [stats, setStats] = useState<RunStats | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
@@ -35,29 +32,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
 
   const trend = trends.find((t) => t.id === trendId) ?? null;
 
-  useEffect(() => {
-    try {
-      setTrial(localStorage.getItem(TRIAL_KEY) === "1");
-    } catch {}
-  }, []);
-
-  const gate = useCallback(
-    (action: () => void) => {
-      if (trial) action();
-      else setPaywallFor(() => action);
-    },
-    [trial],
-  );
-
-  const startTrial = () => {
-    try {
-      localStorage.setItem(TRIAL_KEY, "1");
-    } catch {}
-    setTrial(true);
-    const action = paywallFor;
-    setPaywallFor(null);
-    action?.();
-  };
+  const paywall = usePaywall(slots);
 
   // Which backend is active (shown in the header).
   useEffect(() => {
@@ -120,6 +95,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
     let final: Extract<PipelineEvent<Blob>, { type: "done" }> | null = null;
     const durations: number[] = [];
     let lastError: string | null = null;
+    const results: { original: Blob; styled: Blob }[] = [];
     try {
       await runStyleSet<Blob, Blob>({
         photos: photos.map((p) => p.blob),
@@ -135,6 +111,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
               patch(e.index, { status: "error", error: e.error });
             } else if (e.status === "done") {
               durations.push(e.ms);
+              results[e.index] = { original: photos[e.index].blob, styled: e.output };
               patch(e.index, {
                 status: "done",
                 styledBlob: e.output,
@@ -163,6 +140,15 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
         avgMs: durations.reduce((a, b) => a + b, 0) / Math.max(1, durations.length),
       });
       setStep("results");
+      // Save the finished set on this device for the studio home ("Your sets").
+      setSaved(null);
+      saveSet({
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        trendId: trend.id,
+        trendName: trend.name,
+        items: results.filter(Boolean),
+      }).then(setSaved);
     } else {
       setRunError(`None of the photos could be styled.${lastError ? ` ${lastError}` : ""}`);
     }
@@ -185,7 +171,7 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
     <main className="shell">
       <header className="topbar">
         <div className="left">
-          <Link href="/" className="back" aria-label="Back to home">
+          <Link href="/studio" className="back" aria-label="Back to Creator Studio">
             <IconBack />
           </Link>
           <div className="brand">Creator Studio</div>
@@ -224,8 +210,17 @@ export default function Studio({ trends, initialTrendId = null }: { trends: Tren
           )}
         </>
       )}
-      {step === "results" && trend && <ResultsStep slots={slots} trendId={trend.id} trendName={trend.name} stats={stats} onRestart={restart} gate={gate} />}
-      {paywallFor && <Paywall slots={slots} onStart={startTrial} onClose={() => setPaywallFor(null)} />}
+      {step === "results" && trend && (
+        <>
+          {saved && (
+            <div className="chip" data-testid="saved-chip">
+              ✓ Saved to Your sets · on this device only
+            </div>
+          )}
+          <ResultsStep slots={slots} trendId={trend.id} trendName={trend.name} stats={stats} onRestart={restart} gate={paywall.gate} />
+        </>
+      )}
+      {paywall.node}
 
       {step === "upload" && (
         <div className="cta-bar">
