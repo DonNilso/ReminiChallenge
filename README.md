@@ -19,23 +19,26 @@ script that produces them is ready to run (see [Feasibility notes](#feasibility-
 
 ## The host-app mock: how Creator Studio fits into the app
 
-`/` is a **visual mock of the surrounding photo app**, so you can see where the feature
-lives and how users reach it. Only Creator Studio works; every other button shows a "mock
-screen" toast. There's no Remini logo or name. On a laptop the app renders inside a phone
-frame; on a phone it is full screen.
+`/` is a **visual mock of the surrounding photo app**, laid out after screenshots of the
+current app: a wordmark header with settings and avatar, a search bar, horizontal sections
+(emoji titles, outlined "See all" pills), Enhance with Photos/Videos pills and recent photos,
+a bottom **tool dock**, a floating assistant button, and a settings sheet. Only Creator Studio
+works; every other button shows a "mock screen" toast. The real app's name and logo aren't
+used (the wordmark is a placeholder, `HOST_APP_NAME`). On a laptop the app renders inside a
+phone frame; on a phone it is full screen.
 
 | Integration point | Where | What it does |
 |---|---|---|
-| Launch banner | Home, right under the core Enhance feature | "NEW · Creator Studio, Make a set" opens the studio home |
-| Trends for you | Home, horizontal row | Tapping a trend skips the studio home and opens `/studio/new?trend=<id>`: the look is preselected (chip "Look: Old money") and the user only adds photos |
-| Create (+) sheet | Centre of the tab bar | Creator Studio sits next to Enhance and AI Photos; opens the studio home |
-| Profile | Profile tab | Row into the studio home |
+| Dock "NEW" slot | Bottom dock, last item | The gradient tile with the "NEW" badge is where the app promotes a new feature. Creator Studio takes it and opens the studio home |
+| Home section | Second section on Home, after Retouch photos | "Creator Studio 🎞️ NEW" with a "Make a set" pill, in the same row pattern as the trend and modeling-pack rows. The first tile, "Your weekend", starts a set; the trend tiles start a set with the look preselected (`/studio/new?trend=<id>`) |
+| Search | Search bar | Queries like "carousel", "trend", "instagram" or "weekend" surface Creator Studio |
+| Settings | Settings sheet (gear or avatar) | A "Creator Studio" card with "Your sets" and the default export format |
 | Paywall | Results, on Share / Download ZIP / Download video | Mock PRO sheet ("Start 7-day free trial"): previews are free, export needs a trial. This is where production would switch from cheap previews to full-resolution renders |
 | Share to Instagram | Results | Real Web Share API with the 1080×1350 files, so on a phone it opens the system share sheet with Instagram. Hidden where the browser can't share files |
 
 ### Creator Studio home (`/studio`)
 
-The feature's own home screen, which every entry point except the trend tiles opens:
+The feature's own home screen, which the dock, the section pill, search and settings open:
 
 - **New set.** A big "Make a new set" card for first-time users; a compact "New set" row once
   they have sets, so their sets come first.
@@ -338,7 +341,7 @@ not yet observed**:
 app/
   layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges), phone frame
   host.css                  styles for the host-app mock
-  (tabs)/                   host-app mock: Home (page.tsx), ai-photos/, profile/, shared tab bar (layout.tsx)
+  page.tsx                  host-app mock home
   studio/page.tsx           Creator Studio home: new set, trends this week, your sets
   studio/new/page.tsx       create flow (reads ?trend= to preselect a look)
   studio/set/[id]/page.tsx  a saved set: compare, carousel, share/export, delete
@@ -346,7 +349,7 @@ app/
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
 components/                 Studio (create flow), StudioHome, SetDetail, UploadStep, TrendStep, ProcessingStep,
                             ResultsStep, Paywall + usePaywall
-components/host/            host-app mock: HomeScreen, TabBar + Create sheet, MockScreens, icons, toast
+components/host/            host-app mock: HomeScreen (search, sections), Dock, SettingsSheet, icons, toast
 public/mock/                pre-rendered images for the mock (see SOURCES.md)
 data/trends.json            the 6 trends: name, description, rising/steady, style prompt, demo grade
 lib/
