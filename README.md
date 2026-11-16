@@ -1,75 +1,132 @@
-# Creator Studio (prototype)
+# Remini Creator Studio: clickable prototype
 
-A product-case-study prototype that tests one technical claim:
+**Creator Studio turns Remini from a one-off trend tool into a weekly posting companion.**
+Every week it suggests ready-to-make posts from the user's own photos, in the trends and
+aesthetics that fit them, for each platform they post on.
+
+This repo has two parts:
+
+1. **The clickable product prototype** at `/`, for the case interview. Mobile, in a
+   390×844 phone frame, all mock data, no backend needed.
+2. **A technical proof** at `/studio` (earlier work). A real pipeline that restyles a
+   set of photos into one consistent look with an open image-editing model on Modal. See
+   [Part 2](#part-2-technical-proof-the-styling-pipeline-studio).
+
+---
+
+## Part 1: the clickable prototype
+
+### Run it
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000. On a laptop it renders in a phone frame; on a phone it runs full
+screen. It also deploys to Vercel as is.
+
+### Demo script (end to end, about 3 minutes)
+
+1. **Remini home** → the **Creator Studio** card ("Your week of posts, made from your
+   photos"), or the gradient **NEW** tile in the dock.
+2. **Onboarding** (7 steps, progress dots):
+   - confirm your face (Person 1)
+   - where you post, plus a weekly goal (1× / 3× / daily)
+   - pick aesthetics
+   - tap example posts that feel like you
+   - optionally add screenshots you love
+   - photo access explainer, then the system prompt
+   - payoff: "Your style: film, warm, timeless" with your first 3 ideas, then the
+     **trial sheet**
+3. **Dashboard**:
+   - profile with aesthetics and platforms, and "1 of 3 posted this week"
+   - **This week for you** (carousel / Reel / Story suggestions made from your photos)
+   - **Rising for you** (trends with example posts plus "You", your version)
+   - **Create your own** (from a photo or an idea)
+4. **Create a post**: tap "A carousel from Saturday". The AI greets you with context and
+   picks 6 photos (tap to swap). Type "make it moody, 5 photos" or tap a quick reply, then
+   **Make it ✨** → generating → **draft**.
+5. **Refine by commenting**: "warmer", "swap the 2nd photo", "turn it into a reel",
+   **Try another look**, or switch Carousel / Reel / Story.
+6. **Post** → share sheet (Instagram / TikTok / WhatsApp Status / Save) → **success**, and
+   the goal moves to "2 of 3 posted this week".
+7. **Notifications**: open the demo menu → *Lock screen*.
+   - "A golden-hour carousel from Saturday is ready to make" → dashboard with that idea
+     highlighted.
+   - "Film flash is taking off. Here's your version." → free watermarked preview → "Make
+     the full set" needs Pro → trial sheet.
+
+### Demo menu (hidden)
+
+Long-press the **Remini** wordmark or the **Creator Studio** title, or press the **`**
+(backtick) key. It jumps to any screen (every onboarding step, dashboard, chat, each draft
+format, success, trend alert, lock screen), switches **Free / Pro**, sets the posts-this-week
+count, and resets the demo. The demo state persists in `localStorage`, so a refresh keeps
+your place. Direct links also work: `/?screen=lock`, `/?screen=dashboard`,
+`/?screen=onboarding`, `/?screen=alert`.
+
+### Free vs Pro (shown with locks and badges)
+
+| | Free | Pro |
+|---|---|---|
+| Weekly suggestions | Enhance-only previews of your photos | Previews in the trend look |
+| Full drafts | 1 a week, with a small "Made with Remini" mark | Unlimited, no mark |
+| Formats | Carousel 4:5 | Carousel, Reel 9:16 (beat-cut), Story 9:16 |
+| Edits by asking | 3 per draft | Unlimited |
+
+Pro features open the trial sheet ("3 days free, then €9.99/week"; nothing is charged).
+
+### How the prototype is built
+
+- **All mock data is in one file: [`proto/data.ts`](proto/data.ts).** User, camera-roll
+  photos, aesthetics (each with its CSS "look"), weekly suggestions, rising trends,
+  onboarding examples, notifications, chat lines and prices.
+- **Looks:** the user's real photo is shown in each aesthetic with a CSS colour grade,
+  overlay, grain, vignette and flash (`Shot` in `proto/ui.tsx`). That stands in for the AI
+  restyle, so the same photo visibly changes look. Part 2 shows the real version.
+- **The AI chat is scripted** ([`proto/brain.ts`](proto/brain.ts), unit-tested): it
+  understands plain requests like "moody", "warmer", "cooler", "brighter", "6 photos",
+  "only three photos", "swap the 2nd photo", "shorter", "turn it into a reel / story", look
+  names, "Saturday", "night out", "food", "pick for me" and "make it". Optional real
+  replies: set `OPENROUTER_API_KEY` (and optionally `OPENROUTER_MODEL`, default
+  `google/gemini-3.1-flash-lite`) and messages the script doesn't understand are answered
+  by the model via `/api/chat`. Draft changes stay scripted so the demo is predictable.
+- **Code:** `proto/Prototype.tsx` (shell, transitions, sheets, shortcuts), `proto/store.tsx`
+  (screen stack, demo state, Free/Pro rules), `proto/screens/*` (Home, Lock, Onboarding,
+  Dashboard, Chat, Draft, Success, TrendAlert, Sheets), `proto/proto.css` (Remini's visual
+  language: `#000` / `#1C1C1E` / `#3A3A3C`, white pills, `#D92D50` / `#FF5C7A`, Outfit).
+- **Photos:** Unsplash placeholders under the Unsplash License, stored in `public/p/`
+  (sources in [`public/p/CREDITS.md`](public/p/CREDITS.md)), so the demo works offline.
+
+### Prototype limits
+
+- No real AI on the images (CSS looks); no real camera roll, accounts or posting. The share
+  sheet and the photo-permission prompt are mocks.
+- The chat understands the phrases above; anything else gets a generic reply unless an
+  OpenRouter key is set.
+- One persona (Mia) and one week of data.
+
+---
+
+## Part 2: technical proof, the styling pipeline (`/studio`)
+
+The earlier prototype tests the one technical claim behind the product:
 
 > An open image-editing model can take 5–10 of a user's **real** photos (say, from a weekend
 > trip) and return them enhanced in **one consistent, on-trend look**, ready to post as an
 > Instagram carousel.
 
-Trend detection and scheduling are out of scope. The nine trends (the six from the brief
-plus three seasonal ones) and their trend signals (hashtag, post count, weekly growth) are
-hard-coded, illustrative data in [`data/trends.json`](data/trends.json).
+**Status:** the app, export, video and Modal GPU service are built and tested. The GPU model
+has **not** been run yet (no Modal account or Hugging Face access in the build sandbox).
+Everything up to the GPU call is verified. The numbers that need the real model are marked
+*to measure*, and the benchmark that produces them is ready. Without Modal settings,
+`/studio` runs in demo mode with a local colour grade.
 
-**Status:** the app, the export, the video and the Modal GPU service are built and tested. The
-GPU model has **not** been run yet: the sandbox this was built in had no Modal account and no
-access to Hugging Face. Everything up to the GPU call is verified (see [Testing](#testing)).
-The feasibility numbers that need the real model are marked *to measure*, and the benchmark
-script that produces them is ready to run (see [Feasibility notes](#feasibility-notes)).
-
----
-
-## The host-app mock: how Creator Studio fits into the app
-
-`/` is a **visual mock of the surrounding photo app**, laid out after screenshots of the
-current app: a wordmark header with settings and avatar, a search bar, horizontal sections
-(emoji titles, outlined "See all" pills), Enhance with Photos/Videos pills and recent photos,
-a bottom **tool dock**, a floating assistant button, and a settings sheet. Only Creator Studio
-works; every other button shows a "mock screen" toast. The real app's name and logo aren't
-used (the wordmark is a placeholder, `HOST_APP_NAME`). On a laptop the app renders inside a
-phone frame; on a phone it is full screen.
-
-| Integration point | Where | What it does |
-|---|---|---|
-| Dock "NEW" slot | Bottom dock, last item | The gradient tile with the "NEW" badge is where the app promotes a new feature. Creator Studio takes it and opens the studio home |
-| Home section | Second section on Home, after Retouch photos | "Creator Studio 🎞️ NEW" with a "Create a post" pill, in the same row pattern as the trend and modeling-pack rows. The first tile, "Your weekend", starts a post; the trend tiles (in the user's personal ranking) start a post with the look preselected (`/studio/new?trend=<id>`) |
-| Search | Search bar | Queries like "carousel", "trend", "instagram" or "weekend" surface Creator Studio |
-| Settings | Settings sheet (gear or avatar) | A "Creator Studio" card with "Your posts & preferences" and the default export format |
-| Paywall | Results, on Share / Download ZIP / Download video | Mock PRO sheet ("Start 7-day free trial"): previews are free, export needs a trial. This is where production would switch from cheap previews to full-resolution renders |
-| Share to Instagram | Results | Real Web Share API with the 1080×1350 files, so on a phone it opens the system share sheet with Instagram. Hidden where the browser can't share files |
-
-### Creator Studio dashboard (`/studio`)
-
-The feature's own home, which the dock, the section pill, search and settings open. Creators
-make **posts** (a carousel of 3–10 photos in one look):
-
-- **Account and preferences.** Handle, connected platforms (Instagram, TikTok), stats
-  (posts made, this week's posts against a weekly goal, best time to post) and preferences:
-  what they post (Travel, City, Food, Friends, Nature, Nightlife, Fashion) and which looks they
-  like (Warm, Cool, Film, Clean, Bold). "Edit" opens the preferences sheet. Connecting a real
-  account is mocked; preferences live in `localStorage`.
-- **Create a post.** Starts the create flow.
-- **Proposed for you.** The top three trends for this creator, as big cards with hashtag, post
-  count and *why* each is proposed ("Matches Travel & City · Film look you like · +38% this
-  week · In season"). "Use this look" starts a post with that look preselected. The ranking
-  (`lib/shared/recommend.ts`) weighs content match most, then look match, then momentum
-  (rising, weekly growth) and season, and it's unit-tested. The same ranking orders the trend
-  step ("For you" badges) and the Creator Studio row on Home.
-- **All trends this week.** The remaining trends with their weekly growth.
-- **Your posts.** Every finished post is saved automatically (photos before and after,
-  trend, date) and shown with its cover, photo count and age. Tapping one reopens it
-  (`/studio/post/<id>`) with before/after, the carousel, re-share, re-download and delete.
-  Posts live in **IndexedDB in the user's browser only**: still nothing is stored on the
-  server, so posts don't sync between devices. The newest 12 are kept.
-
-The `from=` query parameter marks the entry point. Nothing reads it yet; it's there to show
-where attribution would be logged. The mock trial is stored in `localStorage`
-(`cs-mock-trial`); clear it to see the paywall again. The mock's images are public-domain
-or CC0 sample photos with the demo grade applied (`scripts/make-mock-assets.ts`,
-`public/mock/SOURCES.md`).
-
----
-
-## How it works
+### How the styling pipeline works
 
 ```
 Browser (Next.js, mobile-first)                  Next.js API route /api/style        Modal (1x H100 per container)
@@ -134,7 +191,7 @@ checkpoint costs nothing.
 
 ---
 
-## Setup
+### Setup
 
 Requirements: Node 20+ (tested on 22). For the AI backend you also need Python 3.11+ and a
 [Modal](https://modal.com) account.
@@ -151,8 +208,8 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000, ideally in your browser's phone emulation. Without
-`MODAL_ENDPOINT_URL` the app runs in **demo mode** (pink *Demo mode* pill in the header).
+Open http://localhost:3000/studio (also in the prototype's demo menu). Without
+`MODAL_ENDPOINT_URL` it runs in **demo mode** (pink *Demo mode* pill in the header).
 A local colour grade made with `sharp` stands in for the model, so you can try the whole
 flow: upload, trends, progress, before/after, carousel, ZIP and video. Demo mode is
 **not** the AI model, and it ignores the style reference.
@@ -218,14 +275,14 @@ the meantime.
 | | |
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
-| `npm test` | 22 unit tests: pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric, trend data, trend ranking |
+| `npm test` | 28 unit tests: the prototype's chat parser, plus pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric, trend data, trend ranking |
 | `npm run lint` | `tsc --noEmit` |
 | `npm run bench -- <folder> [trend]` | Feasibility benchmark (below) |
 | `pytest modal_app` | Offline tests for the Python helpers: output sizing, decoding, Lab conversion, colour lock |
 
 ---
 
-## Rough cost per run
+### Rough cost per run
 
 Modal bills GPU-seconds while a container is up. The H100 list price used here is
 **$3.95/h (about $0.0011/s)**; check [modal.com/pricing](https://modal.com/pricing).
@@ -243,7 +300,7 @@ $0.10–$0.90 per run.
 
 ---
 
-## Known limitations
+### Known limitations
 
 - **The model hasn't been run end to end yet** (no GPU account in the build sandbox). The
   Modal app's helpers are unit-tested and its definition imports cleanly with `modal==1.6.4`,
@@ -276,9 +333,9 @@ $0.10–$0.90 per run.
 
 ---
 
-## Feasibility notes
+### Feasibility notes
 
-### Measured so far (no GPU)
+#### Measured so far (no GPU)
 
 | What | Result |
 |---|---|
@@ -290,7 +347,7 @@ $0.10–$0.90 per run.
 | Does a fixed filter make a set consistent? | **Barely.** Applying the same grade to 5 unrelated photos changed the "look spread" (mean ΔE of each photo's average Lab colour from the set average) from 16.3 to between 11.9 and 21.2, depending on the trend. Y2K flash *increased* spread. A preset alone doesn't unify a set, which is why the anchor-reference approach is needed. |
 | Colour lock on top (deterministic, measured on the same outputs) | Cut look spread by **about 28 % at strength 0.35** and **about 45 % at 0.6** for all six original trends (for example Golden hour 16.5 to 11.6 to 8.4). 0.35 is the default because higher values start to wash out real differences between scenes, such as a sunset next to a daytime shot. |
 
-### To measure with the real model
+#### To measure with the real model
 
 Put 5–10 photos from one trip in a folder (`npm run bench` reads JPG, PNG and WebP; it
 doesn't decode HEIC, so convert those first), deploy the Modal app, then run:
@@ -325,7 +382,7 @@ not yet observed**:
 - **The reference leaks content**: an element of the anchor photo appears in another photo.
   The prompt guards against it, but it's a known multi-image failure mode.
 
-### How a production version would cut cost
+#### How a production version would cut cost
 
 1. **Preview cheaply, finish later.** Generate previews at 512 px (about 0.25 MP, so about 4x
    fewer pixels and roughly 3–4x cheaper per photo). Run full resolution only for users who
@@ -346,13 +403,14 @@ not yet observed**:
 
 ---
 
-## File structure
+### File structure
 
 ```
 app/
   layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges), phone frame
-  host.css                  styles for the host-app mock
-  page.tsx                  host-app mock home
+  host.css                  phone frame + styles shared by /studio
+  page.tsx                  Part 1: the clickable prototype (renders proto/Prototype.tsx)
+  api/chat/route.ts         optional OpenRouter replies for the prototype chat
   studio/page.tsx           Creator Studio dashboard: account & preferences, proposed trends, your posts
   studio/new/page.tsx       create flow (reads ?trend= to preselect a look)
   studio/post/[id]/page.tsx a saved post: compare, carousel, share/export, delete
@@ -360,7 +418,9 @@ app/
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
 components/                 Studio (create flow), StudioHome (dashboard), PrefsSheet, PostDetail, UploadStep, TrendStep, ProcessingStep,
                             ResultsStep, Paywall + usePaywall
-components/host/            host-app mock: HomeScreen (search, sections), Dock, SettingsSheet, icons, toast
+components/host/icons.tsx   icon set shared by both parts
+proto/                      Part 1 (data.ts = all mock data; brain.ts = scripted chat; screens/)
+public/p/                   placeholder photos for Part 1 (CREDITS.md)
 public/mock/                pre-rendered images for the mock (see SOURCES.md)
 data/trends.json            the 9 trends: name, description, rising/steady, trend signals (meta), style prompt, demo grade
 lib/
@@ -387,7 +447,7 @@ scripts/make-mock-assets.ts regenerates public/mock/
 tests/                      node:test unit tests
 ```
 
-## Testing
+### Testing
 
 ```bash
 npm test

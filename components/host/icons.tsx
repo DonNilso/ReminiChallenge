@@ -82,3 +82,42 @@ export const IconDoc = ({ size }: P) => (
 export const IconEdit = ({ size }: P) => (
   <svg {...s(size)}><path d="M4 20l1-4L16 5l3 3L8 19z" /></svg>
 );
+export const IconHeart = ({ size, filled }: P & { filled?: boolean }) => (
+  <svg {...s(size)} fill={filled ? "currentColor" : "none"}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg>
+);
+export const IconSend = ({ size }: P) => (
+  <svg {...s(size)} strokeWidth={2}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+);
+export const IconCheck = ({ size }: P) => (
+  <svg {...s(size)} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+);
+export const IconLock = ({ size }: P) => (
+  <svg {...s(size)}><rect x="5" y="10.5" width="14" height="10" rx="2.5" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></svg>
+);
+export const IconPlay = ({ size }: P) => (
+  <svg {...s(size)} fill="currentColor" stroke="none"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+);
+export const IconMusic = ({ size }: P) => (
+  <svg {...s(size)}><path d="M9 18V6l11-2v12" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></svg>
+);
+export const IconBell = ({ size }: P) => (
+  <svg {...s(size)}><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></svg>
+);
+export const IconTrend = ({ size }: P) => (
+  <svg {...s(size)}><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></svg>
+);
+export const IconImage = ({ size }: P) => (
+  <svg {...s(size)}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><circle cx="9" cy="9.5" r="1.6" /><path d="M20.5 16l-5-5-8 9" /></svg>
+);
+export const IconIdea = ({ size }: P) => (
+  <svg {...s(size)}><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" /></svg>
+);
+export const IconUpload = ({ size }: P) => (
+  <svg {...s(size)}><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
+);
+export const IconShield = ({ size }: P) => (
+  <svg {...s(size)}><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" /><path d="M9 12l2 2 4-4" /></svg>
+);
+export const IconRefresh = ({ size }: P) => (
+  <svg {...s(size)}><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8" /><path d="M4 4v4h4" /><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16" /><path d="M20 20v-4h-4" /></svg>
+);

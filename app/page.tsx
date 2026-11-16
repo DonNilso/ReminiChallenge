@@ -1,7 +1,6 @@
-import HomeScreen from "@/components/host/HomeScreen.tsx";
-import { publicTrends } from "@/lib/trends.ts";
+import Prototype from "@/proto/Prototype.tsx";
 
-export default function Home() {
-  const trends = publicTrends(); // style prompts stay on the server
-  return <HomeScreen trends={trends} />;
+/** Clickable Creator Studio prototype (mock data, no backend). The earlier technical demo lives at /studio. */
+export default function Page() {
+  return <Prototype />;
 }
