@@ -231,23 +231,23 @@ export const TRENDS: Trend[] = [
 
 export const trend = (id: string) => TRENDS.find((t) => t.id === id) ?? TRENDS[0];
 
-// ---------------------------------------------------------------- onboarding
-/** Example posts shown in "Refine": tap the ones that feel like you. */
-export const REFINE_EXAMPLES: { src: string; aesthetic: string }[] = [
-  { src: "/p/ex-neon.jpg", aesthetic: "film-flash" },
-  { src: "/p/ex-dress.jpg", aesthetic: "old-money" },
-  { src: "/p/ex-smile.jpg", aesthetic: "golden-hour" },
-  { src: "/p/ex-redhead.jpg", aesthetic: "soft-glam" },
-  { src: "/p/ex-winter.jpg", aesthetic: "clean-girl" },
-  { src: "/p/ex-leather.jpg", aesthetic: "streetwear" },
-  { src: "/p/ex-red.jpg", aesthetic: "film-flash" },
-  { src: "/p/ex-shopping.jpg", aesthetic: "old-money" },
-  { src: "/p/ex-curls.jpg", aesthetic: "golden-hour" },
-  { src: "/p/ex-hat.jpg", aesthetic: "90s" },
-  { src: "/p/ex-dark.jpg", aesthetic: "soft-glam" },
-  { src: "/p/ex-hoodie.jpg", aesthetic: "minimal" },
-];
+/** The trend the user picked in onboarding, turned into a ready-to-make idea. */
+export function trendSuggestion(trendId: string): Suggestion {
+  const t = trend(trendId);
+  const first = ROLL.find((x) => x.id === t.fromPhotos[0]);
+  const word = t.format === "carousel" ? "carousel" : t.format === "reel" ? "Reel" : "Story";
+  return {
+    id: `trend-${t.id}`,
+    title: `Your first ${t.name.toLowerCase()} ${word}`,
+    format: t.format,
+    aesthetic: t.id,
+    photos: [...t.fromPhotos],
+    from: first ? `${first.when.toLowerCase()}'s photos` : "your recent photos",
+    why: `The trend you picked · +${t.growth}% this week`,
+  };
+}
 
+// ---------------------------------------------------------------- onboarding
 /** Screenshots the user "uploads" as inspiration (mock). */
 export const INSPIRATION_UPLOADS = [
   { src: "/p/ex-neon.jpg", source: "Instagram" },

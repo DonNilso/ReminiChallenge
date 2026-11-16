@@ -36,12 +36,12 @@ screen. It also deploys to Vercel as is.
 2. **Onboarding** (7 steps, progress dots):
    - confirm your face (Person 1)
    - where you post, plus a weekly goal (1× / 3× / daily)
-   - pick aesthetics
-   - tap example posts that feel like you
+   - choose your favourite aesthetics
+   - pick a trend to try (rising trends, your style first, each shown on one of your photos)
    - optionally add screenshots you love
    - photo access explainer, then the system prompt
-   - payoff: "Your style: film, warm, timeless" with your first 3 ideas, then the
-     **trial sheet**
+   - payoff: "Your style: film, warm, timeless" with your first 3 ideas (the first one in
+     the trend you picked), then the **trial sheet**
 3. **Dashboard**:
    - profile with aesthetics and platforms, and "1 of 3 posted this week"
    - **This week for you** (carousel / Reel / Story suggestions made from your photos)

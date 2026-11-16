@@ -35,7 +35,7 @@ export type DemoState = {
   platforms: string[];
   goal: number; // posts per week: 1, 3 or 7
   aesthetics: string[]; // picked in onboarding
-  liked: string[]; // refine step
+  trendToTry: string | null; // picked in onboarding: the first idea is made in it
   inspirations: number; // uploaded screenshots
   photoAccess: "full" | "limited" | "none";
   posted: number; // posts this week
@@ -50,7 +50,7 @@ export const INITIAL: DemoState = {
   platforms: ["Instagram", "TikTok"],
   goal: 3,
   aesthetics: ["film-flash", "golden-hour", "old-money"],
-  liked: [],
+  trendToTry: null,
   inspirations: 0,
   photoAccess: "full",
   posted: 1,

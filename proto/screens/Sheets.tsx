@@ -133,10 +133,10 @@ export function DebugMenu() {
   const jumps: [string, () => void][] = [
     ["Lock screen (notifications)", () => go({ name: "lock" })],
     ["Remini home", () => go({ name: "home" })],
-    ...["a Face", "b Platforms", "c Aesthetics", "d Refine", "e Inspiration", "f Photo access", "g Payoff"].map(
+    ...["a Face", "b Platforms", "c Aesthetics", "d Trend to try", "e Inspiration", "f Photo access", "g Payoff"].map(
       (l, i) => [`Onboarding ${l}`, () => go({ name: "onboarding", step: i })] as [string, () => void],
     ),
-    ["Dashboard", () => (set({ onboarded: true }), go({ name: "dashboard" }))],
+    ["Dashboard", () => (set((st) => ({ onboarded: true, trendToTry: st.trendToTry ?? "film-flash" })), go({ name: "dashboard" }))],
     ["Chat: Saturday carousel", () => (set({ onboarded: true }), go({ name: "chat", entry: { kind: "suggestion", id: "sat-carousel" } }))],
     ["Chat: create your own", () => (set({ onboarded: true }), go({ name: "chat", entry: { kind: "own", mode: "photo" } }))],
     ["Draft: carousel", () => withDraft("carousel")],

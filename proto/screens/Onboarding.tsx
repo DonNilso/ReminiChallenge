@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AESTHETICS, GOALS, INSPIRATION_UPLOADS, PLATFORMS, REFINE_EXAMPLES, SUGGESTIONS, USER, aesthetic, photo } from "../data.ts";
+import { AESTHETICS, GOALS, INSPIRATION_UPLOADS, PLATFORMS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion } from "../data.ts";
 import { useProto } from "../store.tsx";
-import { Dots, IconBack, IconCheck, IconHeart, IconImage, IconShield, IconUpload, Shot } from "../ui.tsx";
+import { Dots, IconBack, IconCheck, IconImage, IconShield, IconTrend, IconUpload, Shot } from "../ui.tsx";
 import { SuggestionCard } from "./Dashboard.tsx";
 
 const STEPS = 7;
@@ -30,7 +30,7 @@ export default function Onboarding({ step }: { step: number }) {
         {step === 0 && <Face onNext={() => go(1)} />}
         {step === 1 && <Platforms onNext={() => go(2)} />}
         {step === 2 && <Aesthetics onNext={() => go(3)} />}
-        {step === 3 && <Refine onNext={() => go(4)} />}
+        {step === 3 && <TrendPick onNext={() => go(4)} />}
         {step === 4 && <Inspiration onNext={() => go(5)} />}
         {step === 5 && <PhotoAccess onNext={() => go(6)} />}
         {step === 6 && (
@@ -40,6 +40,7 @@ export default function Onboarding({ step }: { step: number }) {
             pro={isPro}
             locked={formatLocked}
             aesthetics={s.aesthetics}
+            trendToTry={s.trendToTry}
           />
         )}
       </div>
@@ -112,8 +113,8 @@ function Aesthetics({ onNext }: { onNext: () => void }) {
   const toggle = (id: string) => set((st) => ({ aesthetics: st.aesthetics.includes(id) ? st.aesthetics.filter((x) => x !== id) : [...st.aesthetics, id] }));
   return (
     <>
-      <h1 className="onb-h">Pick your aesthetics</h1>
-      <p className="onb-p">Choose as many as you like. You can change them anytime.</p>
+      <h1 className="onb-h">Choose your favourite aesthetics</h1>
+      <p className="onb-p">Pick as many as you like. Your weekly ideas are made in these looks, and you can change them anytime.</p>
       <div className="ae-grid">
         {AESTHETICS.map((a) => {
           const on = s.aesthetics.includes(a.id);
@@ -139,35 +140,49 @@ function Aesthetics({ onNext }: { onNext: () => void }) {
   );
 }
 
-function Refine({ onNext }: { onNext: () => void }) {
+function TrendPick({ onNext }: { onNext: () => void }) {
   const { s, set } = useProto();
-  const examples = useMemo(() => {
-    const mine = REFINE_EXAMPLES.filter((e) => s.aesthetics.includes(e.aesthetic));
-    return (mine.length >= 4 ? mine : [...mine, ...REFINE_EXAMPLES.filter((e) => !mine.includes(e))]).slice(0, 6);
-  }, [s.aesthetics]);
-  const toggle = (src: string) => set((st) => ({ liked: st.liked.includes(src) ? st.liked.filter((x) => x !== src) : [...st.liked, src] }));
+  // Trends that match the chosen aesthetics first, then by momentum.
+  const ordered = useMemo(
+    () => [...TRENDS].sort((a, b) => Number(s.aesthetics.includes(b.id)) - Number(s.aesthetics.includes(a.id)) || b.growth - a.growth),
+    [s.aesthetics],
+  );
+  const picked = TRENDS.find((t) => t.id === s.trendToTry);
   return (
     <>
-      <h1 className="onb-h">Which feel like you?</h1>
-      <p className="onb-p">Tap the posts you'd love to see on your own feed.</p>
-      <div className="ref-grid">
-        {examples.map((e) => {
-          const on = s.liked.includes(e.src);
+      <h1 className="onb-h">Pick a trend to try</h1>
+      <p className="onb-p">Rising right now. We'll make your first post in it, from your own photos.</p>
+      <div className="tp-list" role="radiogroup" aria-label="Trends">
+        {ordered.map((t) => {
+          const on = s.trendToTry === t.id;
           return (
-            <button key={e.src} className={`ref${on ? " on" : ""}`} onClick={() => toggle(e.src)} aria-pressed={on}>
-              <Shot src={e.src} look={aesthetic(e.aesthetic).look} />
-              <span className="ref-heart">
-                <IconHeart size={20} filled={on} />
+            <button key={t.id} role="radio" aria-checked={on} className={`tp${on ? " on" : ""}`} onClick={() => set({ trendToTry: t.id })} data-testid={`tp-${t.id}`}>
+              <Shot src={`/p/${t.examples[0]}.jpg`} look={aesthetic(t.id).look} className="tp-ex" />
+              <span className="tp-body">
+                <span className="tp-name">
+                  {t.name} {s.aesthetics.includes(t.id) && <span className="tag-you">Your style</span>}
+                </span>
+                <span className="tp-growth">
+                  <IconTrend size={14} /> +{t.growth}% this week
+                </span>
+                <span className="tp-blurb">{t.blurb}</span>
               </span>
-              <span className="ref-tag">{aesthetic(e.aesthetic).name}</span>
+              <Shot src={photo(t.fromPhotos[0]).src} look={aesthetic(t.id).look} className="tp-you">
+                <span className="tp-you-l">You</span>
+              </Shot>
             </button>
           );
         })}
       </div>
       <div className="onb-actions sticky">
-        <button className="pill-w block" onClick={onNext} data-testid="onb-next">
-          {s.liked.length ? `Continue · ${s.liked.length} liked` : "Continue"}
+        <button className="pill-w block" onClick={onNext} disabled={!picked} data-testid="onb-next">
+          {picked ? `Try ${picked.name}` : "Pick a trend"}
         </button>
+        {!picked && (
+          <button className="link" onClick={() => (set({ trendToTry: ordered[0].id }), onNext())}>
+            Surprise me
+          </button>
+        )}
       </div>
     </>
   );
@@ -259,7 +274,23 @@ function PhotoAccess({ onNext }: { onNext: () => void }) {
   );
 }
 
-function Payoff({ onTrial, onSkip, pro, locked, aesthetics }: { onTrial: () => void; onSkip: () => void; pro: boolean; locked: (f: "carousel" | "reel" | "story") => boolean; aesthetics: string[] }) {
+function Payoff({
+  onTrial,
+  onSkip,
+  pro,
+  locked,
+  aesthetics,
+  trendToTry,
+}: {
+  onTrial: () => void;
+  onSkip: () => void;
+  pro: boolean;
+  locked: (f: "carousel" | "reel" | "story") => boolean;
+  aesthetics: string[];
+  trendToTry: string | null;
+}) {
+  // The picked trend becomes the first idea.
+  const ideas = [...(trendToTry ? [trendSuggestion(trendToTry)] : []), ...SUGGESTIONS].slice(0, 3);
   // One main word per picked aesthetic first ("film", "warm", …), then their second words.
   const words = [...new Set([...aesthetics.map((id) => aesthetic(id).words[0]), ...aesthetics.flatMap((id) => aesthetic(id).words.slice(1))])].slice(0, 3);
   const [ready, setReady] = useState(false);
@@ -280,7 +311,7 @@ function Payoff({ onTrial, onSkip, pro, locked, aesthetics }: { onTrial: () => v
         </div>
       ) : (
         <div className="hs payoff-hs">
-          {SUGGESTIONS.slice(0, 3).map((sg) => (
+          {ideas.map((sg) => (
             <SuggestionCard key={sg.id} sg={sg} pro locked={!pro && locked(sg.format)} onOpen={onTrial} />
           ))}
         </div>

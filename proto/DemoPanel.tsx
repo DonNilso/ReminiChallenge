@@ -22,7 +22,7 @@ export default function DemoPanel() {
   };
   const returning = () => {
     closeSheet();
-    set({ ...INITIAL, onboarded: true, plan: s.plan });
+    set({ ...INITIAL, onboarded: true, trendToTry: "film-flash", plan: s.plan });
     reset([{ name: "home" }, { name: "dashboard" }]);
   };
 

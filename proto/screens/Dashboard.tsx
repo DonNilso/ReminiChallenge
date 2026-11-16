@@ -1,6 +1,6 @@
 "use client";
 
-import { AESTHETICS, FORMATS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, type Suggestion } from "../data.ts";
+import { AESTHETICS, FORMATS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion, type Suggestion } from "../data.ts";
 import { useProto } from "../store.tsx";
 import { GoalRing, IconBack, IconIdea, IconImage, IconLock, IconPlay, IconTrend, Shot, longPress, lookFor } from "../ui.tsx";
 
@@ -64,9 +64,18 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
       {/* weekly suggestions */}
       <div className="sec">
         <h2>This week for you</h2>
-        <span className="sec-note">{suggestions.length} ready to make</span>
+        <span className="sec-note">{suggestions.length + (s.trendToTry ? 1 : 0)} ready to make</span>
       </div>
       <div className="hs" data-testid="suggestions">
+        {s.trendToTry && (
+          <SuggestionCard
+            sg={trendSuggestion(s.trendToTry)}
+            tag="Your pick"
+            pro={isPro}
+            locked={formatLocked(trendSuggestion(s.trendToTry).format)}
+            onOpen={() => push({ name: "chat", entry: { kind: "trend", id: s.trendToTry! } })}
+          />
+        )}
         {suggestions.map((sg) => (
           <SuggestionCard
             key={sg.id}
@@ -90,7 +99,8 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
             <div className="rise-head">
               <div>
                 <div className="rise-name">
-                  {t.name} {s.aesthetics.includes(t.id) && <span className="tag-you">Your style</span>}
+                  {t.name}{" "}
+                  {s.trendToTry === t.id ? <span className="tag-you pick">Your pick</span> : s.aesthetics.includes(t.id) && <span className="tag-you">Your style</span>}
                 </div>
                 <div className="rise-growth">
                   <IconTrend size={15} /> +{t.growth}% this week
@@ -134,7 +144,21 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
   );
 }
 
-export function SuggestionCard({ sg, highlight, pro, locked, onOpen }: { sg: Suggestion; highlight?: boolean; pro: boolean; locked: boolean; onOpen: () => void }) {
+export function SuggestionCard({
+  sg,
+  highlight,
+  tag,
+  pro,
+  locked,
+  onOpen,
+}: {
+  sg: Suggestion;
+  highlight?: boolean;
+  tag?: string;
+  pro: boolean;
+  locked: boolean;
+  onOpen: () => void;
+}) {
   const look = pro ? aesthetic(sg.aesthetic).look : lookFor(null);
   const a = aesthetic(sg.aesthetic);
   const ph = sg.photos.map((id) => photo(id).src);
@@ -166,6 +190,7 @@ export function SuggestionCard({ sg, highlight, pro, locked, onOpen }: { sg: Sug
           {locked && <IconLock size={12} />} {FORMATS[sg.format].label}
         </span>
         {highlight && <span className="ready">Ready</span>}
+        {tag && !highlight && <span className="ready pick">{tag}</span>}
       </div>
       <div className="sg-body">
         <div className="sg-title">{sg.title}</div>
