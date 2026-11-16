@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import "./proto.css";
 import { ProtoProvider, useProto, type Screen } from "./store.tsx";
 import { StatusBar } from "./ui.tsx";
+import DemoPanel from "./DemoPanel.tsx";
 import Chat from "./screens/Chat.tsx";
 import Dashboard from "./screens/Dashboard.tsx";
 import Draft from "./screens/Draft.tsx";
@@ -70,6 +71,7 @@ function Shell() {
       {sheet?.kind === "share" && <ShareSheet />}
       {sheet?.kind === "debug" && <DebugMenu />}
       <div className="home-indicator" aria-hidden />
+      <DemoPanel />
     </div>
   );
 }

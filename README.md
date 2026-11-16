@@ -60,6 +60,18 @@ screen. It also deploys to Vercel as is.
    - "Film flash is taking off. Here's your version." → free watermarked preview → "Make
      the full set" needs Pro → trial sheet.
 
+### Demo controls (left of the phone)
+
+On a laptop or desktop (window at least 980 px wide), a panel to the left of the phone frame
+switches between:
+
+- **New user**: fresh state, starts on Remini home; tapping Creator Studio runs onboarding.
+- **Returning user**: already onboarded as Mia, opens straight on the dashboard.
+
+It also has a **Free / Pro** switch and jumps to the lock screen (notifications), the trend
+alert and Remini home. It's outside the phone, so it never shows up in the app itself, and
+it's hidden on phones.
+
 ### Demo menu (hidden)
 
 Long-press the **Remini** wordmark or the **Creator Studio** title, or press the **`**
