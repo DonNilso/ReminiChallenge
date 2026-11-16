@@ -6,7 +6,9 @@
   font-family: "Outfit", system-ui, sans-serif; -webkit-tap-highlight-color: transparent;
 }
 @media (min-width: 640px) {
-  .proto { height: 100%; --sb: 50px; }
+  /* Clip the screen to the phone's rounded corners. The mask is the reliable fix for
+     Safari, which otherwise lets animated/blurred layers poke out past border-radius. */
+  .proto { height: 100%; --sb: 50px; border-radius: 44px; isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); }
 }
 .proto button { font: inherit; color: inherit; cursor: pointer; }
 .proto img { display: block; user-select: none; -webkit-user-drag: none; }
@@ -52,7 +54,7 @@
 .sec { display: flex; align-items: baseline; justify-content: space-between; margin: 28px 0 12px; }
 .sec h2 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.01em; }
 .sec-note { color: var(--accent-text); font-size: 13px; font-weight: 600; }
-.hs { display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.hs { display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; }
 .hs::-webkit-scrollbar { display: none; }
 .hs > * { scroll-snap-align: start; flex-shrink: 0; }
 .p-toast { position: fixed; z-index: 80; left: 16px; right: 16px; bottom: 140px; background: #fff; color: #000; border-radius: 16px; padding: 12px 16px; text-align: center; font-size: 14px; animation: sheetUp .25s ease-out; }

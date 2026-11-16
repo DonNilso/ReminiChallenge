@@ -7,6 +7,7 @@
     border-radius: 54px; border: 10px solid #1b1b1d; box-shadow: 0 0 0 2px #2c2c2e, 0 30px 80px rgba(0,0,0,.6);
     overflow: hidden; background: var(--bg);
     transform: translateZ(0); /* fixed-position children (tab bar, CTA bar, sheets) stick to the frame */
+    isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); /* Safari: clip children to the rounded frame */
   }
   .device-scroll { height: 100%; overflow-y: auto; scrollbar-width: none; }
   .device-scroll::-webkit-scrollbar { display: none; }
@@ -36,7 +37,7 @@ a { color: inherit; text-decoration: none; }
 .sec-head h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
 .section-sub { color: var(--muted); font-size: 14px; margin: -6px 0 12px; }
 
-.hscroll { display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.hscroll { display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; }
 .hscroll::-webkit-scrollbar { display: none; }
 .pack-tile { position: relative; flex: 0 0 132px; aspect-ratio: 0.72; border-radius: 22px; overflow: hidden; scroll-snap-align: start; background: var(--card); border: 0; padding: 0; cursor: pointer; color: #fff; display: block; }
 .pack-tile img { width: 100%; height: 100%; object-fit: cover; }
