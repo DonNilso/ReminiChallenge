@@ -259,7 +259,7 @@ export function Preview({ spec, title, source }: { spec: Spec; title: string; so
   const [i, setI] = useState(0);
   const frames = spec.photos.slice(0, 3);
   const tall = spec.format !== "carousel";
-  const label = source === "link" ? "your version" : source === "template" ? "this template" : "your idea";
+  const label = source === "link" ? "your version" : "your photos";
   return (
     <div className="scr own" data-testid="free-preview">
       <Top title={title} onBack={back} />
@@ -292,7 +292,7 @@ export function Preview({ spec, title, source }: { spec: Spec; title: string; so
           Make the full post
         </button>
         <button className="pill-o block" onClick={back}>
-          Back to {label}
+          {source === "describe" ? "Back" : `Back to ${label}`}
         </button>
       </div>
     </div>

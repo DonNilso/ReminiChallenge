@@ -140,6 +140,7 @@ export function DebugMenu() {
     ["Link: reading", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "reading" }]))],
     ["Link: format found", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "found" }]))],
     ["Templates", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "templates" }]))],
+    ["Explore styles", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "explore" }]))],
     [
       "Template draft",
       () => {

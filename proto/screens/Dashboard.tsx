@@ -4,6 +4,7 @@ import { AESTHETICS, FORMATS, HUB, PAST_POSTS, SUGGESTIONS, TRENDS, USER, aesthe
 import { useProto } from "../store.tsx";
 import { GoalRing, IconBack, IconIdea, IconLayers, IconLock, IconPlay, IconTrend, Shot, longPress, lookFor } from "../ui.tsx";
 import { LinkField } from "./OwnIdea.tsx";
+import { ExploreSection } from "./Explore.tsx";
 
 export default function Dashboard({ highlight }: { highlight?: string }) {
   const { s, push, back, isPro, openSheet, requirePro, formatLocked } = useProto();
@@ -32,87 +33,80 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         )}
       </header>
 
-      {/* profile + goal */}
-      <section className="prof" data-testid="profile">
+      {/* profile + goal (compact, so the ways in fit on the first screen) */}
+      <section className="prof compact" data-testid="profile">
         <div className="prof-row">
           <img className="prof-avatar" src={USER.avatar} alt="" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="prof-name">{USER.name}</div>
+            <div className="prof-name">
+              {USER.name}
+              <button className="prof-edit" onClick={() => openSheet({ kind: "profile" })} data-testid="edit-profile">
+                Edit
+              </button>
+            </div>
             <div className="prof-sub">
               {USER.handle} · {s.platforms.join(", ")}
             </div>
           </div>
-          <button className="pill-o sm" onClick={() => openSheet({ kind: "profile" })} data-testid="edit-profile">
-            Edit
-          </button>
-        </div>
-        <div className="chips">
-          {s.aesthetics.map((id) => (
-            <span key={id} className="chip">
-              {aesthetic(id).name}
+          <div className="goal-mini" title={left === 0 ? "Goal reached" : `Your goal: ${goalLabel} a week · ${left} to go`}>
+            <GoalRing done={s.posted} goal={s.goal} size={44} />
+            <span className="goal-mini-t" data-testid="goal-text">
+              {s.posted} of {s.goal === 7 ? 7 : s.goal} posted
+              <br />
+              this week
             </span>
-          ))}
-        </div>
-        <div className="past" data-testid="past-posts">
-          <div className="past-head">
-            <span>Your posts</span>
-            <small>{PAST_POSTS.length} made with Creator Studio</small>
           </div>
-          <div className="past-row">
-            {PAST_POSTS.map((pp) => (
-              <Shot key={pp.photo} src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className={`past-th ${pp.format}`}>
-                {pp.format !== "carousel" && (
-                  <span className="past-ic">
-                    <IconPlay size={9} />
-                  </span>
-                )}
-              </Shot>
+        </div>
+        <div className="prof-line">
+          <div className="chips mini">
+            {/* Two chips fit next to the posts strip; with more, show one and a count. */}
+            {s.aesthetics.slice(0, s.aesthetics.length > 2 ? 1 : 2).map((id) => (
+              <span key={id} className="chip">
+                {aesthetic(id).name}
+              </span>
             ))}
+            {s.aesthetics.length > 2 && <span className="chip">+{s.aesthetics.length - 1}</span>}
           </div>
-        </div>
-        <div className="goal">
-          <GoalRing done={s.posted} goal={s.goal} />
-          <div>
-            <div className="goal-t" data-testid="goal-text">
-              {s.posted} of {s.goal === 7 ? 7 : s.goal} posted this week
-            </div>
-            <div className="goal-s">
-              {left === 0 ? "Goal reached. Nice!" : `Your goal: ${goalLabel} a week · ${left} to go`}
-            </div>
+          <div className="past-mini" data-testid="past-posts" title={`Your posts: ${PAST_POSTS.length} made with Creator Studio`}>
+            {PAST_POSTS.slice(0, 4).map((pp) => (
+              <Shot key={pp.photo} src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className="past-th" />
+            ))}
+            <span className="past-more">
+              Your posts
+              <br />
+              {PAST_POSTS.length}
+            </span>
           </div>
         </div>
       </section>
 
       {/* way in 1: you come with an idea */}
-      <section className="bring" data-testid="bring-idea">
+      <section className="bring compact" data-testid="bring-idea">
         <div className="bring-head">
           <h2>{HUB.bringTitle}</h2>
           <span className={`fp-badge${isPro ? " pro" : ""}`}>{isPro ? "Full posts" : "Free preview · Pro full post"}</span>
         </div>
-        <p className="bring-sub">{HUB.bringSub}</p>
-        <div className="bring-k">Paste a link</div>
         <LinkField onGo={() => push({ name: "link", phase: "reading" })} />
         <div className="bring-opts">
           <button className="bring-opt" onClick={() => push({ name: "chat", entry: { kind: "own", mode: "idea" } })} data-testid="describe-it">
-            <IconIdea size={22} />
+            <IconIdea size={18} />
             <b>Describe it</b>
-            <small>“a moody night-out Reel…”</small>
           </button>
           <button className="bring-opt" onClick={() => push({ name: "templates" })} data-testid="pick-template">
-            <IconLayers size={22} />
+            <IconLayers size={18} />
             <b>Pick a template</b>
-            <small>Photo dump, GRWM, 10 years ago…</small>
           </button>
         </div>
       </section>
 
       {/* way in 2: it nudges you */}
-      <div className="nudge-label">{HUB.nudgeLabel}</div>
-      <div className="sec" style={{ marginTop: 6 }}>
-        <h2>This week for you</h2>
+      <div className="sec nudge" style={{ marginTop: 18 }}>
+        <h2>
+          This week for you <small>{HUB.nudgeLabel}</small>
+        </h2>
         <span className="sec-note">{suggestions.length + (s.trendToTry ? 1 : 0)} ready to make</span>
       </div>
-      <div className="hs" data-testid="suggestions">
+      <div className="hs dash-sg" data-testid="suggestions">
         {s.trendToTry && (
           <SuggestionCard
             sg={trendSuggestion(s.trendToTry)}
@@ -134,6 +128,9 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         ))}
       </div>
       {!isPro && <p className="free-note">Free previews show your photos enhanced. Pro previews the trend look.</p>}
+
+      {/* explore: more content to choose from */}
+      <ExploreSection />
 
       {/* rising trends */}
       <div className="sec">

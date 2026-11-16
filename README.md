@@ -52,11 +52,16 @@ Start with **New user** in the demo panel left of the phone.
    - payoff: "Bring any post or idea, or let us bring you ideas every week" with your
      first 3 ideas, then the trial sheet (pick *Continue with Free* to show the Free
      rules)
-2. **The hub (dashboard).**
-   - Profile: face, aesthetics, platforms, **Your posts** (6 past posts made with Creator
-     Studio), and "1 of 3 posted this week". **Edit** changes all of it.
-   - Below it, **Bring your idea** with three ways: paste a link, describe it, pick a
-     template.
+2. **The hub (dashboard).** The first screen shows the profile, Bring your idea and the
+   week's suggestions together.
+   - Compact profile: face, platforms, aesthetics, **Your posts** (6 past posts made with
+     Creator Studio) and the "1 of 3 posted" ring. **Edit** changes all of it.
+   - **Bring your idea**: paste a link, describe it, or pick a template.
+   - **This week for you**: ideas made from your photos.
+   - **Explore styles**: 20 trends, templates and looks with filters (For you / Trending /
+     Aesthetics / Templates / Reels), each previewed on Mia's photos. **See all** opens the
+     full Explore screen. Trends open the chat, templates open the template, and looks make
+     a post in that style from your best photos (Free: preview · Pro: full post).
 3. **Bring a link.** The link field is pre-filled with a TikTok link; tap **Go**.
    - *Reading the post…* (about 1.5 s): cuts and pacing, the look, text on screen, length.
    - **We found the format:** "Reel · 7 cuts · 12 s · film flash look · text on beat 2".
@@ -93,7 +98,7 @@ switches between:
 - **Returning user**: already onboarded as Mia, opens straight on the dashboard.
 
 It also has a **Free / Pro** switch and jumps to the lock screen (notifications), the trend
-alert, **Shared from TikTok**, Templates and Remini home. It's outside the phone, so it never shows up in the app itself, and
+alert, **Shared from TikTok**, Templates, Explore styles and Remini home. It's outside the phone, so it never shows up in the app itself, and
 it's hidden on phones.
 
 ### Demo menu (hidden)
@@ -104,12 +109,12 @@ Long-press the **Remini** wordmark or the **Creator Studio** title, or press the
 - every onboarding step, the dashboard, the chat, each draft format, success, the trend
   alert and the lock screen
 - **Link: paste**, **Link: reading**, **Link: format found**, **Templates**, **Template
-  draft**, **Shared from TikTok**
+  draft**, **Explore styles**, **Shared from TikTok**
 
 It also switches **Free / Pro**, sets the posts-this-week count and resets the demo. The demo
 state persists in `localStorage`, so a refresh keeps your place. Direct links also work:
 `/?screen=lock`, `/?screen=dashboard`, `/?screen=onboarding`, `/?screen=alert`,
-`/?screen=link`, `/?screen=templates`, `/?screen=share`.
+`/?screen=link`, `/?screen=templates`, `/?screen=share`, `/?screen=explore`.
 
 ### Free vs Pro (shown with locks and badges)
 
@@ -128,8 +133,9 @@ Pro features open the trial sheet ("3 days free, then €9.99/week"; nothing is 
 - **All mock data is in one file: [`proto/data.ts`](proto/data.ts).** It holds:
   - the user, camera-roll photos and past posts (`PAST_POSTS`)
   - aesthetics (each with its CSS "look"), weekly suggestions and rising trends
-  - the demo link and what we "read" from it (`LINK_DEMO`), and the templates
-    (`TEMPLATES`)
+  - the demo link and what we "read" from it (`LINK_DEMO`), the templates (`TEMPLATES`),
+    and the Explore list with its filters (`EXPLORE`, `EXPLORE_FILTERS`), including four
+    extra looks (Y2K, Coastal, Noir, Polaroid)
   - hub copy (`HUB`), the Free vs Pro rows (`FREE_VS_PRO`), notifications, chat lines and
     prices
 - **Looks:** the user's real photo is shown in each aesthetic with a CSS colour grade,

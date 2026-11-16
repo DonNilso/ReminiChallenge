@@ -36,6 +36,10 @@ function initial(entry: ChatEntry, preferred: string[]): { spec: Spec; greet: st
       picker: true,
     };
   }
+  if (entry.kind === "style") {
+    const spec: Spec = { ...base, aesthetic: entry.id, format: "carousel", photos: photosFor("best", 6) };
+    return { spec, greet: fill(CHAT.greetStyle, { look: aesthetic(entry.id).name.toLowerCase(), n: 6 }), quick: CHAT.quickSuggestion, picker: true };
+  }
   const spec: Spec = { ...base, aesthetic: preferred[0] ?? "golden-hour", format: "carousel", photos: [] };
   return entry.mode === "photo"
     ? { spec, greet: CHAT.greetPhoto, quick: CHAT.quickPhoto, picker: true }
@@ -87,6 +91,7 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
     }
     // Your own idea (described or from photos): Free preview, Pro full post.
     if (entry.kind === "own") return startOwnIdea(sp, "Your idea", "describe");
+    if (entry.kind === "style") return startOwnIdea(sp, aesthetic(entry.id).name, "template");
     // Weekly ideas and trends: 1 free draft a week, carousel only.
     const go = () => {
       set((st) => ({ freeDraftsUsed: st.plan === "free" ? st.freeDraftsUsed + 1 : st.freeDraftsUsed }));

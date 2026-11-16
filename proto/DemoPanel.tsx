@@ -60,6 +60,7 @@ export default function DemoPanel() {
           Shared from TikTok
         </button>
         <button onClick={() => (closeSheet(), set({ onboarded: true }), reset([{ name: "home" }, { name: "dashboard" }, { name: "templates" }]))}>Templates</button>
+        <button onClick={() => (closeSheet(), set({ onboarded: true }), reset([{ name: "home" }, { name: "dashboard" }, { name: "explore" }]))}>Explore styles</button>
         <button onClick={() => (closeSheet(), reset({ name: "home" }))}>Remini home</button>
       </div>
 

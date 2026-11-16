@@ -408,6 +408,66 @@ export const FREE_VS_PRO: [string, string, string][] = [
   ["“Made with Remini” mark", "Yes", "No"],
 ];
 
+// ---------------------------------------------------------------- explore styles
+// More looks to browse in Explore (not offered in onboarding).
+AESTHETICS.push(
+  { id: "y2k", name: "Y2K", hidden: true, words: ["y2k", "glossy"], cover: "/p/fri-lights.jpg", look: { filter: "saturate(1.45) contrast(1.15) brightness(1.06) hue-rotate(8deg)", overlay: "linear-gradient(160deg, rgba(120,170,255,.28), rgba(255,120,220,.22))", blend: "soft-light", grain: 0.06, vignette: 0.3 } },
+  { id: "coastal", name: "Coastal", hidden: true, words: ["airy", "coastal"], cover: "/p/wk-coast.jpg", look: { filter: "brightness(1.12) saturate(.9) contrast(.92) hue-rotate(-4deg)", overlay: "linear-gradient(180deg, rgba(170,215,255,.3), rgba(255,250,240,.12))", blend: "soft-light", grain: 0.02, vignette: 0 } },
+  { id: "noir", name: "Noir", hidden: true, words: ["noir", "black & white"], cover: "/p/sat-walk.jpg", look: { filter: "grayscale(1) contrast(1.35) brightness(.95)", grain: 0.14, vignette: 0.55 } },
+  { id: "polaroid", name: "Polaroid", hidden: true, words: ["instant", "faded"], cover: "/p/sat-friends.jpg", look: { filter: "sepia(.25) saturate(.8) contrast(.85) brightness(1.1)", overlay: "linear-gradient(180deg, rgba(255,240,200,.3), rgba(120,200,190,.18))", blend: "soft-light", grain: 0.12, vignette: 0.25 } },
+);
+
+/**
+ * Explore styles: everything people can choose from, in one browsable list.
+ * kind "trend" opens the trend in the chat, "template" opens the template,
+ * "style" makes a post in that look from your best photos.
+ */
+export type ExploreItem = {
+  id: string;
+  name: string;
+  kind: "trend" | "template" | "style";
+  ref: string; // trend id, template id or aesthetic id
+  cover: string; // photo id (camera roll, profile or example)
+  aesthetic: string;
+  format: Format;
+  badge?: string;
+};
+
+export const EXPLORE_FILTERS = ["For you", "Trending", "Aesthetics", "Templates", "Reels"] as const;
+
+export const EXPLORE: ExploreItem[] = [
+  { id: "x-younger-me", name: "Me & me, 10 years ago", kind: "trend", ref: "younger-me", cover: "duo", aesthetic: "golden-hour", format: "reel", badge: "+71%" },
+  { id: "x-hairstyles", name: "5 hairstyles on me", kind: "trend", ref: "hairstyles", cover: "ex-redhead", aesthetic: "soft-glam", format: "carousel", badge: "+58%" },
+  { id: "x-film-flash", name: "Film flash", kind: "trend", ref: "film-flash", cover: "fri-red", aesthetic: "film-flash", format: "carousel", badge: "+44%" },
+  { id: "x-dark-academia", name: "Dark academia", kind: "trend", ref: "dark-academia", cover: "wk-white", aesthetic: "dark-academia", format: "carousel", badge: "+34%" },
+  { id: "x-main-character", name: "Main character", kind: "trend", ref: "main-character", cover: "sat-walk", aesthetic: "golden-hour", format: "story", badge: "+22%" },
+  { id: "x-photo-dump", name: "Photo dump", kind: "template", ref: "photo-dump", cover: "sat-laugh", aesthetic: "90s", format: "carousel" },
+  { id: "x-grwm", name: "Get ready with me", kind: "template", ref: "grwm", cover: "wk-pink", aesthetic: "soft-glam", format: "reel" },
+  { id: "x-outfits", name: "5 outfits on me", kind: "template", ref: "five-outfits", cover: "sat-denim", aesthetic: "old-money", format: "carousel" },
+  { id: "x-day", name: "Day in my life", kind: "template", ref: "day-in-my-life", cover: "wk-coffee", aesthetic: "clean-girl", format: "story" },
+  { id: "x-golden", name: "Golden hour carousel", kind: "template", ref: "golden-carousel", cover: "sat-sunset", aesthetic: "golden-hour", format: "carousel" },
+  { id: "x-old-money", name: "Old money", kind: "style", ref: "old-money", cover: "sat-terrace", aesthetic: "old-money", format: "carousel" },
+  { id: "x-soft-glam", name: "Soft glam", kind: "style", ref: "soft-glam", cover: "fri-lights", aesthetic: "soft-glam", format: "carousel" },
+  { id: "x-clean-girl", name: "Clean girl", kind: "style", ref: "clean-girl", cover: "wk-pink", aesthetic: "clean-girl", format: "carousel" },
+  { id: "x-y2k", name: "Y2K", kind: "style", ref: "y2k", cover: "fri-red", aesthetic: "y2k", format: "reel", badge: "New" },
+  { id: "x-coastal", name: "Coastal", kind: "style", ref: "coastal", cover: "wk-coast", aesthetic: "coastal", format: "carousel", badge: "New" },
+  { id: "x-noir", name: "Noir", kind: "style", ref: "noir", cover: "sat-street", aesthetic: "noir", format: "carousel" },
+  { id: "x-polaroid", name: "Polaroid", kind: "style", ref: "polaroid", cover: "sat-friends", aesthetic: "polaroid", format: "carousel" },
+  { id: "x-90s", name: "90s", kind: "style", ref: "90s", cover: "sat-tram", aesthetic: "90s", format: "carousel" },
+  { id: "x-streetwear", name: "Streetwear", kind: "style", ref: "streetwear", cover: "fri-bar", aesthetic: "streetwear", format: "reel" },
+  { id: "x-minimal", name: "Minimal", kind: "style", ref: "minimal", cover: "wk-bowl", aesthetic: "minimal", format: "carousel" },
+];
+
+/** Items for a filter. "For you" puts the user's aesthetics and trend pick first. */
+export function exploreItems(filter: string, mine: { aesthetics: string[]; trendToTry: string | null }): ExploreItem[] {
+  if (filter === "Trending") return EXPLORE.filter((x) => x.kind === "trend");
+  if (filter === "Aesthetics") return EXPLORE.filter((x) => x.kind === "style");
+  if (filter === "Templates") return EXPLORE.filter((x) => x.kind === "template");
+  if (filter === "Reels") return EXPLORE.filter((x) => x.format === "reel");
+  const score = (x: ExploreItem) => (x.ref === mine.trendToTry ? 3 : 0) + (mine.aesthetics.includes(x.aesthetic) ? 2 : 0) + (x.kind === "trend" ? 1 : 0);
+  return [...EXPLORE].sort((a, b) => score(b) - score(a));
+}
+
 // ---------------------------------------------------------------- chat script
 /** Canned AI lines. {look}, {format}, {from}, {n} are filled in. */
 export const CHAT = {
@@ -432,4 +492,5 @@ export const CHAT = {
   toTemplates: "Here are templates that fit you. Pick one and I'll do the rest.",
   describeAsk: "Sure. What's the vision? A mood, a place, a format, anything.",
   freePreview: "Free preview of your idea. Make the full post with Pro.",
+  greetStyle: "Let's make a {look} post ✨ I picked {n} of your best photos for it. Tap any to swap, or tell me what you want.",
 };

@@ -8,7 +8,8 @@ import type { Spec } from "./brain.ts";
 export type ChatEntry =
   | { kind: "suggestion"; id: string }
   | { kind: "trend"; id: string }
-  | { kind: "own"; mode: "photo" | "idea" };
+  | { kind: "own"; mode: "photo" | "idea" }
+  | { kind: "style"; id: string }; // a look from Explore, made with your best photos
 
 export type Screen =
   | { name: "lock" }
@@ -24,7 +25,8 @@ export type Screen =
   | { name: "templates" }
   | { name: "template"; id: string }
   | { name: "preview"; spec: Spec; title: string; source: "link" | "template" | "describe" }
-  | { name: "shareIn" };
+  | { name: "shareIn" }
+  | { name: "explore"; filter?: string };
 
 export type Sheet =
   | { kind: "paywall"; reason: string; then?: () => void }

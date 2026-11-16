@@ -15,8 +15,9 @@ import { DebugMenu, EditProfile, Paywall, ShareSheet } from "./screens/Sheets.ts
 import Success from "./screens/Success.tsx";
 import TrendAlert from "./screens/TrendAlert.tsx";
 import { Link, Preview, ShareIn, TemplateDetail, Templates } from "./screens/OwnIdea.tsx";
+import Explore from "./screens/Explore.tsx";
 
-/** `?screen=lock|home|dashboard|onboarding|alert|link|templates|share` opens the demo at a given place. */
+/** `?screen=lock|home|dashboard|onboarding|alert|link|templates|share|explore` opens the demo at a given place. */
 function screenFromQuery(): Screen | Screen[] | undefined {
   if (typeof window === "undefined") return undefined;
   const q = new URLSearchParams(window.location.search).get("screen");
@@ -27,6 +28,7 @@ function screenFromQuery(): Screen | Screen[] | undefined {
   if (q === "link") return [{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "paste" }];
   if (q === "templates") return [{ name: "home" }, { name: "dashboard" }, { name: "templates" }];
   if (q === "share") return { name: "shareIn" };
+  if (q === "explore") return [{ name: "home" }, { name: "dashboard" }, { name: "explore" }];
   return undefined;
 }
 
@@ -75,6 +77,7 @@ function Shell() {
         {screen.name === "template" && <TemplateDetail id={screen.id} />}
         {screen.name === "preview" && <Preview spec={screen.spec} title={screen.title} source={screen.source} />}
         {screen.name === "shareIn" && <ShareIn />}
+        {screen.name === "explore" && <Explore filter={screen.filter} />}
       </div>
       {sheet?.kind === "paywall" && <Paywall reason={sheet.reason} then={sheet.then} />}
       {sheet?.kind === "share" && <ShareSheet />}

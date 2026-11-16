@@ -539,3 +539,50 @@
 .si-app.me .si-ic { box-shadow: 0 0 0 3px #000, 0 0 0 5.5px #fff; animation: hlPulse 1.6s ease-in-out infinite; }
 .si-app.me { font-weight: 700; }
 .onb-p.ways { color: #fff; font-weight: 500; background: var(--surface); border-radius: 16px; padding: 12px 14px; }
+
+/* ---------- compact dashboard top: profile + bring your idea + first suggestions on one screen ---------- */
+.prof.compact { padding: 12px 14px; border-radius: 22px; }
+.prof.compact .prof-row { margin-bottom: 10px; gap: 10px; }
+.prof.compact .prof-avatar { width: 44px; height: 44px; border-width: 2px; }
+.prof.compact .prof-name { font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.prof.compact .prof-sub { font-size: 12.5px; }
+.proto .prof-edit { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; color: var(--soft) !important; }
+.goal-mini { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.goal-mini-t { font-size: 11.5px; line-height: 1.2; color: var(--soft); font-weight: 600; }
+.prof-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid #2c2c2e; }
+.chips.mini { flex-wrap: nowrap; overflow: hidden; gap: 4px; min-width: 0; }
+.chips.mini .chip { padding: 4px 9px; font-size: 11.5px; white-space: nowrap; }
+.past-mini { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+.past-mini .past-th { width: 24px; height: 30px; border-radius: 6px; }
+.past-more { font-size: 10px; line-height: 1.15; color: var(--muted); text-align: center; margin-left: 3px; font-weight: 600; }
+.bring.compact { margin-top: 10px; padding: 12px 14px 14px; }
+.bring.compact .bring-head { margin-bottom: 10px; }
+.bring.compact .bring-head h2 { font-size: 19px; }
+.bring.compact .bring-opts { margin-top: 8px; }
+.bring.compact .bring-opt { flex-direction: row; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 999px; }
+.bring.compact .bring-opt b { margin-top: 0; font-size: 14px; }
+.sec.nudge h2 { display: flex; flex-direction: column; }
+.sec.nudge h2 small { order: -1; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.sec.nudge { align-items: flex-end; margin-bottom: 10px; }
+.dash-sg .sg { width: 196px; }
+.dash-sg .sg-prev { height: 196px; }
+.dash-sg .sg-body { padding: 9px 12px 11px; }
+.dash-sg .sg-title { font-size: 15px; }
+
+/* ---------- explore styles ---------- */
+.see-all-btn { border: 0; background: none; color: var(--accent-text) !important; font-size: 14px; font-weight: 600; padding: 0; }
+.x-filters { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
+.x-filters::-webkit-scrollbar { display: none; }
+.x-filters button { flex-shrink: 0; border: 1.5px solid var(--line); background: transparent; border-radius: 999px; padding: 7px 13px; font-size: 13.5px; font-weight: 500; }
+.x-filters button.on { background: #fff; color: #000 !important; border-color: #fff; font-weight: 600; }
+.x-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 10px; }
+.x-grid.three { grid-template-columns: repeat(3, 1fr); gap: 12px 8px; }
+.x-card { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; border: 0; background: transparent; padding: 0; text-align: left; min-width: 0; }
+.x-img { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; }
+.x-grid.three .x-img { border-radius: 14px; }
+.x-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); font-size: 10.5px; font-weight: 700; padding: 3px 7px; border-radius: 7px; }
+.x-badge.hot { background: var(--accent); }
+.x-grid.three .fmt { font-size: 10px; padding: 3px 7px; left: 6px; bottom: 6px; }
+.x-name { font-size: 14px; font-weight: 600; margin-top: 6px; line-height: 1.2; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.x-grid.three .x-name { font-size: 12.5px; }
+.x-kind { color: var(--muted); font-size: 11.5px; }
