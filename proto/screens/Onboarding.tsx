@@ -116,7 +116,7 @@ function Aesthetics({ onNext }: { onNext: () => void }) {
       <h1 className="onb-h">Choose your favourite aesthetics</h1>
       <p className="onb-p">Pick as many as you like. Your weekly ideas are made in these looks, and you can change them anytime.</p>
       <div className="ae-grid">
-        {AESTHETICS.map((a) => {
+        {AESTHETICS.filter((a) => !a.hidden).map((a) => {
           const on = s.aesthetics.includes(a.id);
           return (
             <button key={a.id} className={`ae${on ? " on" : ""}`} onClick={() => toggle(a.id)} aria-pressed={on} data-testid={`ae-${a.id}`}>
@@ -144,7 +144,7 @@ function TrendPick({ onNext }: { onNext: () => void }) {
   const { s, set } = useProto();
   // Trends that match the chosen aesthetics first, then by momentum.
   const ordered = useMemo(
-    () => [...TRENDS].sort((a, b) => Number(s.aesthetics.includes(b.id)) - Number(s.aesthetics.includes(a.id)) || b.growth - a.growth),
+    () => [...TRENDS].sort((a, b) => Number(s.aesthetics.includes(b.aesthetic)) - Number(s.aesthetics.includes(a.aesthetic)) || b.growth - a.growth),
     [s.aesthetics],
   );
   const picked = TRENDS.find((t) => t.id === s.trendToTry);
@@ -157,17 +157,17 @@ function TrendPick({ onNext }: { onNext: () => void }) {
           const on = s.trendToTry === t.id;
           return (
             <button key={t.id} role="radio" aria-checked={on} className={`tp${on ? " on" : ""}`} onClick={() => set({ trendToTry: t.id })} data-testid={`tp-${t.id}`}>
-              <Shot src={`/p/${t.examples[0]}.jpg`} look={aesthetic(t.id).look} className="tp-ex" />
+              <Shot src={`/p/${t.examples[0]}.jpg`} look={aesthetic(t.aesthetic).look} className="tp-ex" />
               <span className="tp-body">
                 <span className="tp-name">
-                  {t.name} {s.aesthetics.includes(t.id) && <span className="tag-you">Your style</span>}
+                  {t.name} {s.aesthetics.includes(t.aesthetic) && <span className="tag-you">Your style</span>}
                 </span>
                 <span className="tp-growth">
                   <IconTrend size={14} /> +{t.growth}% this week
                 </span>
                 <span className="tp-blurb">{t.blurb}</span>
               </span>
-              <Shot src={photo(t.fromPhotos[0]).src} look={aesthetic(t.id).look} className="tp-you">
+              <Shot src={photo(t.fromPhotos[0]).src} look={aesthetic(t.aesthetic).look} className="tp-you">
                 <span className="tp-you-l">You</span>
               </Shot>
             </button>
@@ -178,11 +178,9 @@ function TrendPick({ onNext }: { onNext: () => void }) {
         <button className="pill-w block" onClick={onNext} disabled={!picked} data-testid="onb-next">
           {picked ? `Try ${picked.name}` : "Pick a trend"}
         </button>
-        {!picked && (
-          <button className="link" onClick={() => (set({ trendToTry: ordered[0].id }), onNext())}>
-            Surprise me
-          </button>
-        )}
+        <button className="link" onClick={() => (set({ trendToTry: null }), onNext())} data-testid="skip-trend">
+          Skip for now
+        </button>
       </div>
     </>
   );

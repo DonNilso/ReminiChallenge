@@ -25,8 +25,8 @@ function initial(entry: ChatEntry, preferred: string[]): { spec: Spec; greet: st
   }
   if (entry.kind === "trend") {
     const t = trendById(entry.id);
-    const spec: Spec = { ...base, aesthetic: t.id, format: t.format, photos: [...t.fromPhotos] };
-    const from = photo(t.fromPhotos[0]).when.toLowerCase() || "your recent photos";
+    const spec: Spec = { ...base, aesthetic: t.aesthetic, format: t.format, photos: [...t.fromPhotos] };
+    const from = photo(t.fromPhotos[0]).when.toLowerCase() || "your photos and face profile";
     return {
       spec,
       greet: fill(CHAT.greetTrend, { look: t.name, growth: t.growth, from, n: t.fromPhotos.length }),
@@ -72,7 +72,14 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
   const generate = (sp: Spec) => {
     const go = () => {
       set((st) => ({
-        draft: { spec: sp, title: `${aesthetic(sp.aesthetic).name} ${formatWord(sp.format)}`, edits: 0, version: 1 },
+        draft: {
+          spec: sp,
+          // Posts made from a trend keep the trend's name ("Me & me, 10 years ago · Reel").
+          title: entry.kind === "trend" ? `${trendById(entry.id).name} · ${formatWord(sp.format)}` : `${aesthetic(sp.aesthetic).name} ${formatWord(sp.format)}`,
+          trend: entry.kind === "trend" ? entry.id : null,
+          edits: 0,
+          version: 1,
+        },
         freeDraftsUsed: st.plan === "free" ? st.freeDraftsUsed + 1 : st.freeDraftsUsed,
       }));
       push({ name: "draft" });
@@ -141,8 +148,10 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
   // Picker shows the relevant day first, then everything else.
   const pickerPhotos = useMemo(() => {
     const day = photo(spec.photos[0] ?? "")?.when;
+    // Trend images that aren't in the camera roll (face profile, "now / then" frames) come first.
+    const extra = spec.photos.filter((id) => !ROLL.some((p) => p.id === id)).map(photo);
     const first = ROLL.filter((p) => spec.photos.includes(p.id) || (day && p.when === day));
-    return [...first, ...ROLL.filter((p) => !first.includes(p))].slice(0, 18);
+    return [...extra, ...first, ...ROLL.filter((p) => !first.includes(p))].slice(0, 18);
   }, [spec.photos]);
 
   return (

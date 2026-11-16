@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FORMATS, PRICING, SUGGESTIONS, TRENDS, aesthetic, photo } from "../data.ts";
+import { AESTHETICS, FORMATS, GOALS, PLATFORMS, PRICING, SUGGESTIONS, TRENDS, USER, aesthetic, photo } from "../data.ts";
 import { INITIAL, useProto, type Screen } from "../store.tsx";
 import { IconCheck, IconLock, SheetFrame, Shot } from "../ui.tsx";
 
@@ -196,6 +196,90 @@ export function DebugMenu() {
             <IconCheck size={14} /> Reset demo
           </button>
         </div>
+      </div>
+    </SheetFrame>
+  );
+}
+
+/** Change the profile set in onboarding: face, aesthetics, platforms, goal, trend to try. */
+export function EditProfile() {
+  const { s, set, closeSheet } = useProto();
+  const [d, setD] = useState({ aesthetics: s.aesthetics, platforms: s.platforms, goal: s.goal, trendToTry: s.trendToTry });
+  const [flash, setFlash] = useState(false);
+  const toggle = (key: "aesthetics" | "platforms", v: string) =>
+    setD((x) => ({ ...x, [key]: x[key].includes(v) ? x[key].filter((y) => y !== v) : [...x[key], v] }));
+  const save = () => {
+    set({ ...d });
+    closeSheet();
+  };
+  return (
+    <SheetFrame onClose={closeSheet} label="Edit profile" tall>
+      <div className="ep" data-testid="edit-profile-sheet">
+        <div className="share-title">Edit profile</div>
+        <div className="ep-face">
+          <div className={`ep-ava${flash ? " flash" : ""}`}>
+            <img src={USER.avatar} alt="" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <b>Person 1</b>
+            <small>Your AI face profile</small>
+          </div>
+          <button
+            className="pill-o sm"
+            onClick={() => {
+              setFlash(true);
+              setTimeout(() => setFlash(false), 700);
+            }}
+          >
+            Retake
+          </button>
+        </div>
+
+        <div className="ep-label">Favourite aesthetics</div>
+        <div className="ep-chips">
+          {AESTHETICS.filter((a) => !a.hidden).map((a) => (
+            <button key={a.id} className={`ep-chip${d.aesthetics.includes(a.id) ? " on" : ""}`} onClick={() => toggle("aesthetics", a.id)} aria-pressed={d.aesthetics.includes(a.id)}>
+              {a.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="ep-label">Where you post</div>
+        <div className="ep-chips">
+          {PLATFORMS.map((p) => (
+            <button key={p} className={`ep-chip${d.platforms.includes(p) ? " on" : ""}`} onClick={() => toggle("platforms", p)} aria-pressed={d.platforms.includes(p)}>
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <div className="ep-label">Weekly goal</div>
+        <div className="seg2 full">
+          {GOALS.map((g) => (
+            <button key={g.id} className={d.goal === g.id ? "on" : ""} onClick={() => setD((x) => ({ ...x, goal: g.id }))}>
+              {g.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="ep-label">Trend to try</div>
+        <div className="ep-chips">
+          <button className={`ep-chip${d.trendToTry === null ? " on" : ""}`} onClick={() => setD((x) => ({ ...x, trendToTry: null }))}>
+            None
+          </button>
+          {TRENDS.map((t) => (
+            <button key={t.id} className={`ep-chip${d.trendToTry === t.id ? " on" : ""}`} onClick={() => setD((x) => ({ ...x, trendToTry: t.id }))} data-testid={`ep-trend-${t.id}`}>
+              {t.name}
+            </button>
+          ))}
+        </div>
+
+        <button className="pill-w block" style={{ marginTop: 22 }} onClick={save} disabled={d.aesthetics.length === 0 || d.platforms.length === 0} data-testid="save-profile">
+          Save
+        </button>
+        <button className="link" onClick={closeSheet}>
+          Cancel
+        </button>
       </div>
     </SheetFrame>
   );

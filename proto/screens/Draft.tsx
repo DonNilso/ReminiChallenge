@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CHAT, FORMATS, aesthetic, photo, type Format } from "../data.ts";
+import { CHAT, FORMATS, aesthetic, photo, trend as trendById, type Format } from "../data.ts";
 import { describe, nextAesthetic, parse, type Spec } from "../brain.ts";
 import { FREE_EDITS, useProto } from "../store.tsx";
 import { IconBack, IconLock, IconMusic, IconRefresh, IconSend, IconSparkle, Shot } from "../ui.tsx";
@@ -45,7 +45,7 @@ export default function Draft() {
         draft: st.draft && {
           ...st.draft,
           spec: next,
-          title: `${aesthetic(next.aesthetic).name} ${formatWord(next.format)}`,
+          title: st.draft.trend ? `${trendById(st.draft.trend).name} · ${formatWord(next.format)}` : `${aesthetic(next.aesthetic).name} ${formatWord(next.format)}`,
           edits: st.draft.edits + 1,
           version: st.draft.version + 1,
         },

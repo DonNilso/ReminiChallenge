@@ -37,15 +37,19 @@ screen. It also deploys to Vercel as is.
    - confirm your face (Person 1)
    - where you post, plus a weekly goal (1× / 3× / daily)
    - choose your favourite aesthetics
-   - pick a trend to try (rising trends, your style first, each shown on one of your photos)
+   - pick a trend to try, or skip: viral content ideas like "Me & me, 10 years ago" (a Reel
+     with your younger self), "5 hairstyles on me", "Dark academia", "Film flash", "Main
+     character", each previewed on your own photo
    - optionally add screenshots you love
    - photo access explainer, then the system prompt
    - payoff: "Your style: film, warm, timeless" with your first 3 ideas (the first one in
      the trend you picked), then the **trial sheet**
 3. **Dashboard**:
-   - profile with aesthetics and platforms, and "1 of 3 posted this week"
+   - profile with aesthetics and platforms, and "1 of 3 posted this week"; **Edit** changes
+     aesthetics, platforms, weekly goal, the trend to try, or retakes the face profile
    - **This week for you** (carousel / Reel / Story suggestions made from your photos)
-   - **Rising for you** (trends with example posts plus "You", your version)
+   - **Rising for you** (trends with example posts plus "You", your version; the trend you
+     picked is first, tagged "Your pick", and is also the first weekly idea)
    - **Create your own** (from a photo or an idea)
 4. **Create a post**: tap "A carousel from Saturday". The AI greets you with context and
    picks 6 photos (tap to swap). Type "make it moody, 5 photos" or tap a quick reply, then

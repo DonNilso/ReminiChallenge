@@ -60,3 +60,6 @@ All photos are from [Unsplash](https://unsplash.com) and used under the [Unsplas
 | ex-beard | https://images.unsplash.com/photo-1521572267360-ee0c2909d518 |
 | ex-dress | https://images.unsplash.com/photo-1496747611176-843222e1e57c |
 | wall | https://images.unsplash.com/photo-1506905925346-21bda4d32df4 |
+
+Derived images (made with `sharp` from the photos above for the "10 years ago" trend):
+`me-2016.jpg` and `ex-portrait-2016.jpg` (faded "vintage" versions), `duo.jpg` and `duo-ex.jpg` (side-by-side now / 10 years ago).

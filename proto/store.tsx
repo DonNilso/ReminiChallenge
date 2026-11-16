@@ -24,10 +24,11 @@ export type Sheet =
   | { kind: "paywall"; reason: string; then?: () => void }
   | { kind: "share" }
   | { kind: "debug" }
+  | { kind: "profile" }
   | null;
 
 // ---------------------------------------------------------------- persisted demo state
-export type Draft = { spec: Spec; title: string; edits: number; version: number };
+export type Draft = { spec: Spec; title: string; edits: number; version: number; trend?: string | null };
 
 export type DemoState = {
   onboarded: boolean;

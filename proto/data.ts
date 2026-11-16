@@ -75,6 +75,7 @@ export type Look = {
 export type Aesthetic = {
   id: string;
   name: string;
+  hidden?: boolean; // used by a trend only, not offered in onboarding
   words: string[]; // used for the "Your style: …" summary
   cover: string;
   look: Look;
@@ -138,6 +139,16 @@ export const AESTHETICS: Aesthetic[] = [
     look: { filter: "brightness(1.1) saturate(.55) contrast(.95)", grain: 0, vignette: 0 },
   },
 ];
+
+// Looks used by trends only (not in the onboarding grid).
+AESTHETICS.push({
+  id: "dark-academia",
+  name: "Dark academia",
+  hidden: true,
+  words: ["moody", "academic"],
+  cover: "/p/ex-portrait.jpg",
+  look: { filter: "sepia(.35) saturate(.7) contrast(1.15) brightness(.9)", overlay: "linear-gradient(180deg, rgba(110,72,36,.38), rgba(25,18,10,.38))", blend: "soft-light", grain: 0.1, vignette: 0.6 },
+});
 
 /** Free previews only enhance the photo; the trend look needs Pro. */
 export const ENHANCE_ONLY: Look = { filter: "contrast(1.07) saturate(1.1) brightness(1.03)" };
@@ -211,38 +222,88 @@ export const SUGGESTIONS: Suggestion[] = [
 ];
 
 // ---------------------------------------------------------------- rising trends
+/**
+ * Viral content trends (ideas, not just colour looks). Each one is made from the user's
+ * own photos and face profile; `aesthetic` is the look applied on top.
+ */
 export type Trend = {
-  id: string; // = aesthetic id it maps to
+  id: string;
   name: string;
   growth: number; // % this week
   blurb: string;
+  aesthetic: string; // look id (see AESTHETICS)
   examples: string[]; // example posts (other people's)
-  fromPhotos: string[]; // the user's photos it would restyle
+  fromPhotos: string[]; // what the user's version is made from (first = preview)
   format: Format;
 };
 
 export const TRENDS: Trend[] = [
-  { id: "film-flash", name: "Film flash", growth: 44, blurb: "Direct flash, deep shadows, party energy", examples: ["ex-neon", "ex-red", "ex-leather"], fromPhotos: ["fri-cheers", "fri-red", "fri-lights", "fri-bar", "sat-laugh"], format: "carousel" },
-  { id: "old-money", name: "Old money", growth: 18, blurb: "Cream, camel and navy. Quiet and timeless", examples: ["ex-shopping", "ex-dress", "ex-blonde"], fromPhotos: ["wk-white", "sat-terrace", "wk-dinner", "sat-walk"], format: "carousel" },
-  { id: "golden-hour", name: "Golden hour", growth: 12, blurb: "Warm sun, glowing skin, long shadows", examples: ["ex-smile", "ex-curls", "ex-denim"], fromPhotos: ["sat-sun", "sat-sunset", "sat-friends", "wk-beach"], format: "story" },
-  { id: "soft-glam", name: "Soft glam", growth: 31, blurb: "Pink-soft light, dewy and polished", examples: ["ex-redhead", "ex-dark", "ex-portrait"], fromPhotos: ["wk-pink", "sat-denim", "fri-lights"], format: "carousel" },
-  { id: "clean-girl", name: "Clean girl", growth: 9, blurb: "Bright, fresh, no-makeup makeup", examples: ["ex-winter", "ex-hoodie", "ex-hat"], fromPhotos: ["wk-pink", "wk-coffee", "sat-walk"], format: "carousel" },
+  {
+    id: "younger-me",
+    name: "Me & me, 10 years ago",
+    growth: 71,
+    blurb: "A Reel where you talk to your younger self",
+    aesthetic: "golden-hour",
+    examples: ["duo-ex", "ex-portrait-2016", "ex-portrait"],
+    fromPhotos: ["duo", "me", "me-2016"],
+    format: "reel",
+  },
+  {
+    id: "hairstyles",
+    name: "5 hairstyles on me",
+    growth: 58,
+    blurb: "Try new hair on yourself, one look per slide",
+    aesthetic: "soft-glam",
+    examples: ["ex-redhead", "ex-curls", "ex-blonde"],
+    fromPhotos: ["me", "ex-redhead", "ex-curls", "ex-blonde", "ex-dark"],
+    format: "carousel",
+  },
+  {
+    id: "film-flash",
+    name: "Film flash",
+    growth: 44,
+    blurb: "Direct flash, deep shadows, party energy",
+    aesthetic: "film-flash",
+    examples: ["ex-neon", "ex-red", "ex-leather"],
+    fromPhotos: ["fri-cheers", "fri-red", "fri-lights", "fri-bar", "sat-laugh"],
+    format: "carousel",
+  },
+  {
+    id: "dark-academia",
+    name: "Dark academia",
+    growth: 34,
+    blurb: "Tweed, candlelight and old libraries",
+    aesthetic: "dark-academia",
+    examples: ["ex-portrait", "ex-hat", "ex-man"],
+    fromPhotos: ["wk-white", "sat-walk", "fri-lights", "wk-dinner"],
+    format: "carousel",
+  },
+  {
+    id: "main-character",
+    name: "Main character",
+    growth: 22,
+    blurb: "Cinematic travel shots with you at the centre",
+    aesthetic: "golden-hour",
+    examples: ["ex-denim", "ex-blonde", "ex-smile"],
+    fromPhotos: ["sat-walk", "sat-street", "wk-coast", "sat-tram"],
+    format: "story",
+  },
 ];
 
 export const trend = (id: string) => TRENDS.find((t) => t.id === id) ?? TRENDS[0];
+export const trendLook = (id: string) => aesthetic(trend(id).aesthetic).look;
 
 /** The trend the user picked in onboarding, turned into a ready-to-make idea. */
 export function trendSuggestion(trendId: string): Suggestion {
   const t = trend(trendId);
   const first = ROLL.find((x) => x.id === t.fromPhotos[0]);
-  const word = t.format === "carousel" ? "carousel" : t.format === "reel" ? "Reel" : "Story";
   return {
     id: `trend-${t.id}`,
-    title: `Your first ${t.name.toLowerCase()} ${word}`,
+    title: t.name,
     format: t.format,
-    aesthetic: t.id,
+    aesthetic: t.aesthetic,
     photos: [...t.fromPhotos],
-    from: first ? `${first.when.toLowerCase()}'s photos` : "your recent photos",
+    from: first ? `${first.when.toLowerCase()}'s photos` : "your photos and face profile",
     why: `The trend you picked · +${t.growth}% this week`,
   };
 }

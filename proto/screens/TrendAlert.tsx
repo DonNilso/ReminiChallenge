@@ -36,7 +36,7 @@ export default function TrendAlert({ id }: { id: string }) {
       <div className="alert-pv">
         <div className="car" onScroll={(e) => setI(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
           {photos.map((pid) => (
-            <Shot key={pid} src={photo(pid).src} look={aesthetic(t.id).look} className="car-slide">
+            <Shot key={pid} src={photo(pid).src} look={aesthetic(t.aesthetic).look} className="car-slide">
               <span className="preview-wm">PREVIEW</span>
             </Shot>
           ))}

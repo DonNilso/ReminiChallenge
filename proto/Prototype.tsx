@@ -11,7 +11,7 @@ import Draft from "./screens/Draft.tsx";
 import Home from "./screens/Home.tsx";
 import Lock from "./screens/Lock.tsx";
 import Onboarding from "./screens/Onboarding.tsx";
-import { DebugMenu, Paywall, ShareSheet } from "./screens/Sheets.tsx";
+import { DebugMenu, EditProfile, Paywall, ShareSheet } from "./screens/Sheets.tsx";
 import Success from "./screens/Success.tsx";
 import TrendAlert from "./screens/TrendAlert.tsx";
 
@@ -70,6 +70,7 @@ function Shell() {
       {sheet?.kind === "paywall" && <Paywall reason={sheet.reason} then={sheet.then} />}
       {sheet?.kind === "share" && <ShareSheet />}
       {sheet?.kind === "debug" && <DebugMenu />}
+      {sheet?.kind === "profile" && <EditProfile />}
       <div className="home-indicator" aria-hidden />
       <DemoPanel />
     </div>

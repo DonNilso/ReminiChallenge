@@ -10,7 +10,7 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
   const left = Math.max(0, s.goal - s.posted);
   // Suggestions in the user's chosen platforms first.
   const suggestions = SUGGESTIONS.filter((x) => FORMATS[x.format].platforms.some((p) => s.platforms.includes(p)) || x.format === "carousel");
-  const rising = [...TRENDS].sort((a, b) => Number(s.aesthetics.includes(b.id)) - Number(s.aesthetics.includes(a.id)) || b.growth - a.growth);
+  const rising = [...TRENDS].sort((a, b) => Number(b.id === s.trendToTry) - Number(a.id === s.trendToTry) || b.growth - a.growth);
 
   return (
     <div className="scr dash">
@@ -40,6 +40,9 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
               {USER.handle} · {s.platforms.join(", ")}
             </div>
           </div>
+          <button className="pill-o sm" onClick={() => openSheet({ kind: "profile" })} data-testid="edit-profile">
+            Edit
+          </button>
         </div>
         <div className="chips">
           {s.aesthetics.map((id) => (
@@ -100,7 +103,7 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
               <div>
                 <div className="rise-name">
                   {t.name}{" "}
-                  {s.trendToTry === t.id ? <span className="tag-you pick">Your pick</span> : s.aesthetics.includes(t.id) && <span className="tag-you">Your style</span>}
+                  {s.trendToTry === t.id ? <span className="tag-you pick">Your pick</span> : s.aesthetics.includes(t.aesthetic) && <span className="tag-you">Your style</span>}
                 </div>
                 <div className="rise-growth">
                   <IconTrend size={15} /> +{t.growth}% this week
@@ -112,9 +115,9 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
             </div>
             <div className="rise-ex">
               {t.examples.map((e) => (
-                <Shot key={e} src={`/p/${e}.jpg`} look={aesthetic(t.id).look} className="rise-img" />
+                <Shot key={e} src={`/p/${e}.jpg`} look={aesthetic(t.aesthetic).look} className="rise-img" />
               ))}
-              <Shot src={photo(t.fromPhotos[0]).src} look={isPro ? aesthetic(t.id).look : lookFor(null)} className="rise-img mine">
+              <Shot src={photo(t.fromPhotos[0]).src} look={isPro ? aesthetic(t.aesthetic).look : lookFor(null)} className="rise-img mine">
                 <span className="rise-mine">You</span>
               </Shot>
             </div>
