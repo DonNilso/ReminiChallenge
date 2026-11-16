@@ -1,8 +1,9 @@
 "use client";
 
-import { AESTHETICS, FORMATS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion, type Suggestion } from "../data.ts";
+import { AESTHETICS, FORMATS, HUB, PAST_POSTS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion, type Suggestion } from "../data.ts";
 import { useProto } from "../store.tsx";
-import { GoalRing, IconBack, IconIdea, IconImage, IconLock, IconPlay, IconTrend, Shot, longPress, lookFor } from "../ui.tsx";
+import { GoalRing, IconBack, IconIdea, IconLayers, IconLock, IconPlay, IconTrend, Shot, longPress, lookFor } from "../ui.tsx";
+import { LinkField } from "./OwnIdea.tsx";
 
 export default function Dashboard({ highlight }: { highlight?: string }) {
   const { s, push, back, isPro, openSheet, requirePro, formatLocked } = useProto();
@@ -18,8 +19,9 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         <button className="p-icon" aria-label="Back to Remini" onClick={back}>
           <IconBack />
         </button>
-        <div className="p-title" {...longPress(() => openSheet({ kind: "debug" }))}>
+        <div className="p-title two" {...longPress(() => openSheet({ kind: "debug" }))}>
           Creator Studio
+          <small>{HUB.dashSub}</small>
         </div>
         {isPro ? (
           <span className="pro-badge">PRO</span>
@@ -51,6 +53,23 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
             </span>
           ))}
         </div>
+        <div className="past" data-testid="past-posts">
+          <div className="past-head">
+            <span>Your posts</span>
+            <small>{PAST_POSTS.length} made with Creator Studio</small>
+          </div>
+          <div className="past-row">
+            {PAST_POSTS.map((pp) => (
+              <Shot key={pp.photo} src={photo(pp.photo).src} look={aesthetic(pp.aesthetic).look} className={`past-th ${pp.format}`}>
+                {pp.format !== "carousel" && (
+                  <span className="past-ic">
+                    <IconPlay size={9} />
+                  </span>
+                )}
+              </Shot>
+            ))}
+          </div>
+        </div>
         <div className="goal">
           <GoalRing done={s.posted} goal={s.goal} />
           <div>
@@ -64,8 +83,32 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         </div>
       </section>
 
-      {/* weekly suggestions */}
-      <div className="sec">
+      {/* way in 1: you come with an idea */}
+      <section className="bring" data-testid="bring-idea">
+        <div className="bring-head">
+          <h2>{HUB.bringTitle}</h2>
+          <span className={`fp-badge${isPro ? " pro" : ""}`}>{isPro ? "Full posts" : "Free preview · Pro full post"}</span>
+        </div>
+        <p className="bring-sub">{HUB.bringSub}</p>
+        <div className="bring-k">Paste a link</div>
+        <LinkField onGo={() => push({ name: "link", phase: "reading" })} />
+        <div className="bring-opts">
+          <button className="bring-opt" onClick={() => push({ name: "chat", entry: { kind: "own", mode: "idea" } })} data-testid="describe-it">
+            <IconIdea size={22} />
+            <b>Describe it</b>
+            <small>“a moody night-out Reel…”</small>
+          </button>
+          <button className="bring-opt" onClick={() => push({ name: "templates" })} data-testid="pick-template">
+            <IconLayers size={22} />
+            <b>Pick a template</b>
+            <small>Photo dump, GRWM, 10 years ago…</small>
+          </button>
+        </div>
+      </section>
+
+      {/* way in 2: it nudges you */}
+      <div className="nudge-label">{HUB.nudgeLabel}</div>
+      <div className="sec" style={{ marginTop: 6 }}>
         <h2>This week for you</h2>
         <span className="sec-note">{suggestions.length + (s.trendToTry ? 1 : 0)} ready to make</span>
       </div>
@@ -126,22 +169,6 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         ))}
       </div>
 
-      {/* create your own */}
-      <div className="sec">
-        <h2>Create your own</h2>
-      </div>
-      <div className="own">
-        <button className="own-btn" onClick={() => push({ name: "chat", entry: { kind: "own", mode: "photo" } })} data-testid="own-photo">
-          <IconImage size={26} />
-          <b>From a photo</b>
-          <small>Pick photos, we style them</small>
-        </button>
-        <button className="own-btn" onClick={() => push({ name: "chat", entry: { kind: "own", mode: "idea" } })} data-testid="own-idea">
-          <IconIdea size={26} />
-          <b>From an idea</b>
-          <small>Describe it in a few words</small>
-        </button>
-      </div>
       <div style={{ height: 40 }} />
     </div>
   );

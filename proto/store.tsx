@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FORMATS, SUGGESTIONS, TRENDS, type Format } from "./data.ts";
+import { FORMATS, SUGGESTIONS, TRENDS, aesthetic, type Format } from "./data.ts";
 import type { Spec } from "./brain.ts";
 
 // ---------------------------------------------------------------- screens
@@ -18,7 +18,13 @@ export type Screen =
   | { name: "chat"; entry: ChatEntry }
   | { name: "draft" }
   | { name: "success" }
-  | { name: "trendAlert"; id: string };
+  | { name: "trendAlert"; id: string }
+  // bring your own idea
+  | { name: "link"; phase: "paste" | "reading" | "found"; shared?: boolean }
+  | { name: "templates" }
+  | { name: "template"; id: string }
+  | { name: "preview"; spec: Spec; title: string; source: "link" | "template" | "describe" }
+  | { name: "shareIn" };
 
 export type Sheet =
   | { kind: "paywall"; reason: string; then?: () => void }
@@ -28,7 +34,12 @@ export type Sheet =
   | null;
 
 // ---------------------------------------------------------------- persisted demo state
-export type Draft = { spec: Spec; title: string; edits: number; version: number; trend?: string | null };
+/** `name` (a trend, template or link) is kept in the title when the draft changes. */
+export type Draft = { spec: Spec; title: string; edits: number; version: number; name?: string | null };
+
+export const formatWord = (f: Format) => (f === "carousel" ? "carousel" : f === "reel" ? "Reel" : "Story");
+export const draftTitle = (spec: Spec, name: string | null | undefined, lookName: string) =>
+  name ? `${name} · ${formatWord(spec.format)}` : `${lookName} ${formatWord(spec.format)}`;
 
 export type DemoState = {
   onboarded: boolean;
@@ -82,6 +93,13 @@ type Ctx = {
   isPro: boolean;
   formatLocked: (f: Format) => boolean;
   openStudio: (highlight?: string) => void;
+  /**
+   * Your own idea (link, description or template): Pro gets the full draft,
+   * Free gets a watermarked preview of the first frames, then the trial for the full post.
+   */
+  startOwnIdea: (spec: Spec, name: string, source: "link" | "template" | "describe") => void;
+  /** Store a new draft and open it (the Draft screen shows the generating state first). */
+  openDraft: (spec: Spec, name: string | null, opts?: { replace?: boolean }) => void;
 };
 
 const C = createContext<Ctx | null>(null);
@@ -92,9 +110,9 @@ export function useProto() {
   return c;
 }
 
-export function ProtoProvider({ children, initialScreen }: { children: ReactNode; initialScreen?: Screen }) {
+export function ProtoProvider({ children, initialScreen }: { children: ReactNode; initialScreen?: Screen | Screen[] }) {
   const [s, setS] = useState<DemoState>(INITIAL);
-  const [stack, setStack] = useState<Screen[]>([initialScreen ?? { name: "home" }]);
+  const [stack, setStack] = useState<Screen[]>(Array.isArray(initialScreen) ? initialScreen : [initialScreen ?? { name: "home" }]);
   const [dir, setDir] = useState<"push" | "pop" | "fade">("fade");
   const [sheet, setSheet] = useState<Sheet>(null);
   const loaded = useRef(false);
@@ -156,6 +174,27 @@ export function ProtoProvider({ children, initialScreen }: { children: ReactNode
     [s.onboarded],
   );
 
+  const openDraft = useCallback(
+    (spec: Spec, name: string | null, opts?: { replace?: boolean }) => {
+      const lookName = aesthetic(spec.aesthetic).name;
+      setS((prev) => ({ ...prev, draft: { spec, title: draftTitle(spec, name, lookName), name, edits: 0, version: 1 } }));
+      setDir(opts?.replace ? "fade" : "push");
+      setStack((st) => (opts?.replace ? [...st.slice(0, -1), { name: "draft" }] : [...st, { name: "draft" }]));
+    },
+    [],
+  );
+
+  const startOwnIdea = useCallback(
+    (spec: Spec, name: string, source: "link" | "template" | "describe") => {
+      if (isPro) openDraft(spec, name);
+      else {
+        setDir("push");
+        setStack((st) => [...st, { name: "preview", spec, title: name, source }]);
+      }
+    },
+    [isPro, openDraft],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       s,
@@ -174,8 +213,10 @@ export function ProtoProvider({ children, initialScreen }: { children: ReactNode
       isPro,
       formatLocked: (f: Format) => FORMATS[f].pro && !isPro,
       openStudio,
+      startOwnIdea,
+      openDraft,
     }),
-    [s, set, stack, dir, push, replace, back, reset, sheet, requirePro, isPro, openStudio],
+    [s, set, stack, dir, push, replace, back, reset, sheet, requirePro, isPro, openStudio, startOwnIdea, openDraft],
   );
 
   return <C.Provider value={value}>{children}</C.Provider>;

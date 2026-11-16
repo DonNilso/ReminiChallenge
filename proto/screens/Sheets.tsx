@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AESTHETICS, FORMATS, GOALS, PLATFORMS, PRICING, SUGGESTIONS, TRENDS, USER, aesthetic, photo } from "../data.ts";
+import { AESTHETICS, FORMATS, FREE_VS_PRO, GOALS, LINK_DEMO, PLATFORMS, PRICING, SUGGESTIONS, TEMPLATES, TRENDS, USER, aesthetic, photo } from "../data.ts";
 import { INITIAL, useProto, type Screen } from "../store.tsx";
 import { IconCheck, IconLock, SheetFrame, Shot } from "../ui.tsx";
 
@@ -16,13 +16,7 @@ export function Paywall({ reason, then }: { reason: string; then?: () => void })
     // Let the plan change land before continuing what the user was doing.
     setTimeout(() => then?.(), 50);
   };
-  const rows: [string, string, string][] = [
-    ["Weekly ideas from your photos", "Enhance-only preview", "Full trend look"],
-    ["Full drafts", "1 a week", "Unlimited"],
-    ["Formats", "Carousel", "Carousel, Reel, Story"],
-    ["Edits by asking", `${3} per draft`, "Unlimited"],
-    ["“Made with Remini” mark", "Yes", "No"],
-  ];
+  const rows = FREE_VS_PRO;
   return (
     <SheetFrame onClose={closeSheet} label="Remini Pro" tall>
       <div className="pw" data-testid="paywall">
@@ -121,7 +115,7 @@ export function ShareSheet() {
 /** Hidden demo menu: long-press the "Remini" or "Creator Studio" title, or press the ` key. */
 export function DebugMenu() {
   const { s, set, closeSheet, reset } = useProto();
-  const go = (stack: Screen) => {
+  const go = (stack: Screen | Screen[]) => {
     closeSheet();
     reset(stack);
   };
@@ -142,6 +136,19 @@ export function DebugMenu() {
     ["Draft: carousel", () => withDraft("carousel")],
     ["Draft: Reel", () => withDraft("reel")],
     ["Draft: Story", () => withDraft("story")],
+    ["Link: paste", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "paste" }]))],
+    ["Link: reading", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "reading" }]))],
+    ["Link: format found", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "found" }]))],
+    ["Templates", () => (set({ onboarded: true }), go([{ name: "home" }, { name: "dashboard" }, { name: "templates" }]))],
+    [
+      "Template draft",
+      () => {
+        const t = TEMPLATES[0];
+        set({ onboarded: true, draft: { spec: { aesthetic: t.aesthetic, format: t.format, photos: t.photos, warmth: 0, mood: 0, bright: 0 }, title: `${t.name} · carousel`, name: t.name, edits: 0, version: 1 } });
+        go([{ name: "home" }, { name: "dashboard" }, { name: "templates" }, { name: "draft" }]);
+      },
+    ],
+    [`Shared from ${LINK_DEMO.platform}`, () => go({ name: "shareIn" })],
     ["Success", () => go({ name: "success" })],
     ["Trend alert: Film flash", () => go({ name: "trendAlert", id: TRENDS[0].id })],
   ];

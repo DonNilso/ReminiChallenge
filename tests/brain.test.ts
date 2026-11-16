@@ -45,3 +45,32 @@ test("unknown text is not understood; describe joins changes", () => {
   assert.equal(parse("hmm what do you think about the weather", base).understood, false);
   assert.match(describe(["warmer", "4 photos"]), /warmer and 4 photos\./);
 });
+
+test("'make it like the link' copies the link's format, look and cut count, without generating", () => {
+  const r = parse("make it like the link", base);
+  assert.equal(r.action, "link");
+  assert.equal(r.generate, false);
+  assert.equal(r.spec.format, "reel");
+  assert.equal(r.spec.aesthetic, "film-flash");
+  assert.equal(r.spec.photos.length, 7);
+  assert.ok(r.changes.includes("the link's format and look"));
+  assert.equal(parse("same as the link but warmer", base).spec.warmth, 1);
+});
+
+test("'use a template' asks for the template gallery", () => {
+  const r = parse("use a template", base);
+  assert.equal(r.action, "templates");
+  assert.equal(r.understood, true);
+  assert.deepEqual(r.changes, []);
+});
+
+test("'describe …' is a description: the rest still drives the draft", () => {
+  const bare = parse("describe it", base);
+  assert.equal(bare.action, "describe");
+  assert.equal(bare.understood, true);
+  const r = parse("describe: a moody night-out reel from friday", { ...base, photos: [] });
+  assert.equal(r.action, "describe");
+  assert.equal(r.spec.format, "reel");
+  assert.equal(r.spec.mood, 1);
+  assert.ok(r.spec.photos.every((p) => p.startsWith("fri-")));
+});

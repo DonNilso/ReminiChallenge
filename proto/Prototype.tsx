@@ -14,20 +14,24 @@ import Onboarding from "./screens/Onboarding.tsx";
 import { DebugMenu, EditProfile, Paywall, ShareSheet } from "./screens/Sheets.tsx";
 import Success from "./screens/Success.tsx";
 import TrendAlert from "./screens/TrendAlert.tsx";
+import { Link, Preview, ShareIn, TemplateDetail, Templates } from "./screens/OwnIdea.tsx";
 
-/** `?screen=lock|home|dashboard|onboarding|alert` opens the demo at a given place. */
-function screenFromQuery(): Screen | undefined {
+/** `?screen=lock|home|dashboard|onboarding|alert|link|templates|share` opens the demo at a given place. */
+function screenFromQuery(): Screen | Screen[] | undefined {
   if (typeof window === "undefined") return undefined;
   const q = new URLSearchParams(window.location.search).get("screen");
   if (q === "lock") return { name: "lock" };
   if (q === "dashboard") return { name: "dashboard" };
   if (q === "onboarding") return { name: "onboarding", step: 0 };
   if (q === "alert") return { name: "trendAlert", id: "film-flash" };
+  if (q === "link") return [{ name: "home" }, { name: "dashboard" }, { name: "link", phase: "paste" }];
+  if (q === "templates") return [{ name: "home" }, { name: "dashboard" }, { name: "templates" }];
+  if (q === "share") return { name: "shareIn" };
   return undefined;
 }
 
 export default function Prototype() {
-  const [initial, setInitial] = useState<Screen | undefined | null>(null);
+  const [initial, setInitial] = useState<Screen | Screen[] | undefined | null>(null);
   useEffect(() => setInitial(screenFromQuery()), []);
   if (initial === null) return <div className="proto" />;
   return (
@@ -66,6 +70,11 @@ function Shell() {
         {screen.name === "draft" && <Draft />}
         {screen.name === "success" && <Success />}
         {screen.name === "trendAlert" && <TrendAlert id={screen.id} />}
+        {screen.name === "link" && <Link phase={screen.phase} shared={screen.shared} />}
+        {screen.name === "templates" && <Templates />}
+        {screen.name === "template" && <TemplateDetail id={screen.id} />}
+        {screen.name === "preview" && <Preview spec={screen.spec} title={screen.title} source={screen.source} />}
+        {screen.name === "shareIn" && <ShareIn />}
       </div>
       {sheet?.kind === "paywall" && <Paywall reason={sheet.reason} then={sheet.then} />}
       {sheet?.kind === "share" && <ShareSheet />}

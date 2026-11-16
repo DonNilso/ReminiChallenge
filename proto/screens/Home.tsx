@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HOME, SUGGESTIONS, USER, aesthetic, photo } from "../data.ts";
+import { HOME, HUB, SUGGESTIONS, USER, aesthetic, photo } from "../data.ts";
 import { useProto } from "../store.tsx";
 import { IconCamera, IconChat, IconFaceScan, IconGallery, IconGear, IconLayers, IconSearch, IconSparkle, IconVideoSpark, Shot, longPress } from "../ui.tsx";
 
@@ -43,8 +43,8 @@ export default function Home() {
         <div className="cs-text">
           <span className="badge-new">NEW</span>
           <div className="cs-title">Creator Studio</div>
-          <div className="cs-sub">Your week of posts, made from your photos.</div>
-          <span className="cs-cta">{s.onboarded ? `${SUGGESTIONS.length} ideas ready` : "Get started"} →</span>
+          <div className="cs-sub">{HUB.homeSub}</div>
+          <span className="cs-cta">{s.onboarded ? `Open your hub · ${SUGGESTIONS.length} ideas ready` : "Get started"} →</span>
         </div>
       </button>
 

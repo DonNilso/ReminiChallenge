@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AESTHETICS, GOALS, INSPIRATION_UPLOADS, PLATFORMS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion } from "../data.ts";
+import { AESTHETICS, GOALS, HUB, INSPIRATION_UPLOADS, PLATFORMS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion } from "../data.ts";
 import { useProto } from "../store.tsx";
 import { Dots, IconBack, IconCheck, IconImage, IconShield, IconTrend, IconUpload, Shot } from "../ui.tsx";
 import { SuggestionCard } from "./Dashboard.tsx";
@@ -302,7 +302,8 @@ function Payoff({
         <span className="sum-k">Your style</span>
         <h1 className="onb-h">{words.join(", ")}</h1>
       </div>
-      <p className="onb-p">From your recent photos, here are your first 3 ideas:</p>
+      <p className="onb-p ways" data-testid="ways-in">{HUB.waysIn}</p>
+      <p className="onb-p">To start, here are your first 3 ideas from your recent photos:</p>
       {!ready ? (
         <div className="finding">
           <span className="spin" /> Finding ideas in {photo(SUGGESTIONS[0].photos[0]).when.toLowerCase()}'s photos…

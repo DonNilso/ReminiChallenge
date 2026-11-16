@@ -56,6 +56,10 @@ export default function DemoPanel() {
       <div className="dp-links">
         <button onClick={() => (closeSheet(), reset({ name: "lock" }))}>Lock screen (notifications)</button>
         <button onClick={() => (closeSheet(), set({ onboarded: true }), reset({ name: "trendAlert", id: "film-flash" }))}>Trend alert</button>
+        <button onClick={() => (closeSheet(), reset({ name: "shareIn" }))} data-testid="dp-share">
+          Shared from TikTok
+        </button>
+        <button onClick={() => (closeSheet(), set({ onboarded: true }), reset([{ name: "home" }, { name: "dashboard" }, { name: "templates" }]))}>Templates</button>
         <button onClick={() => (closeSheet(), reset({ name: "home" }))}>Remini home</button>
       </div>
 

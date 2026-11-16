@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAT, FORMATS, ROLL, aesthetic, photo, trend as trendById } from "../data.ts";
 import { describe, parse, photosFor, type Spec } from "../brain.ts";
-import { useProto, suggestionById, type ChatEntry } from "../store.tsx";
+import { formatWord, useProto, suggestionById, type ChatEntry } from "../store.tsx";
 import { IconBack, IconCheck, IconSend, IconSparkle, Shot, lookFor } from "../ui.tsx";
 
 type Msg = { id: number; from: "ai" | "me"; text: string; picker?: boolean };
 
+/** Conversation kept per entry so Back (from a draft or the template gallery) returns to it. */
+const memory = new Map<string, { msgs: Msg[]; spec: Spec; quick: string[]; nextId: number }>();
+
 const fill = (t: string, v: Record<string, string | number>) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ""));
-const formatWord = (f: Spec["format"]) => (f === "carousel" ? "carousel" : f === "reel" ? "Reel" : "Story");
 
 function initial(entry: ChatEntry, preferred: string[]): { spec: Spec; greet: string; quick: string[]; picker: boolean } {
   const base = { warmth: 0, mood: 0, bright: 0 };
@@ -37,24 +39,33 @@ function initial(entry: ChatEntry, preferred: string[]): { spec: Spec; greet: st
   const spec: Spec = { ...base, aesthetic: preferred[0] ?? "golden-hour", format: "carousel", photos: [] };
   return entry.mode === "photo"
     ? { spec, greet: CHAT.greetPhoto, quick: CHAT.quickPhoto, picker: true }
-    : { spec, greet: CHAT.greetIdea, quick: CHAT.quickIdea, picker: false };
+    : { spec, greet: CHAT.greetDescribe, quick: CHAT.quickDescribe, picker: false };
 }
 
 export default function Chat({ entry }: { entry: ChatEntry }) {
-  const { s, set, back, push, requirePro, formatLocked, isPro } = useProto();
+  const { s, set, back, push, requirePro, formatLocked, isPro, openDraft, startOwnIdea, dir } = useProto();
+  const describing = entry.kind === "own" && entry.mode === "idea";
   const init = useMemo(() => initial(entry, s.aesthetics), [entry, s.aesthetics]);
-  const [spec, setSpec] = useState<Spec>(init.spec);
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [quick, setQuick] = useState<string[]>(init.quick);
-  const [typing, setTyping] = useState(true);
+  const key = JSON.stringify(entry);
+  // Coming back with Back: restore the conversation. Opening it anew: start fresh.
+  const [saved] = useState(() => (dir === "pop" ? memory.get(key) : undefined));
+  const [spec, setSpec] = useState<Spec>(saved?.spec ?? init.spec);
+  const [msgs, setMsgs] = useState<Msg[]>(saved?.msgs ?? []);
+  const [quick, setQuick] = useState<string[]>(saved?.quick ?? init.quick);
+  const [typing, setTyping] = useState(!saved);
   const [text, setText] = useState("");
-  const idRef = useRef(0);
+  const idRef = useRef(saved?.nextId ?? 0);
+
+  useEffect(() => {
+    memory.set(key, { msgs, spec, quick, nextId: idRef.current });
+  }, [key, msgs, spec, quick]);
   const scroller = useRef<HTMLDivElement>(null);
 
   const add = (m: Omit<Msg, "id">) => setMsgs((prev) => [...prev, { ...m, id: idRef.current++ }]);
 
   // AI greeting (with a short "typing" beat so it feels alive)
   useEffect(() => {
+    if (saved) return;
     const t = setTimeout(() => {
       setTyping(false);
       add({ from: "ai", text: init.greet, picker: init.picker });
@@ -70,24 +81,18 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
   const lastPickerId = [...msgs].reverse().find((m) => m.picker)?.id;
 
   const generate = (sp: Spec) => {
-    const go = () => {
-      set((st) => ({
-        draft: {
-          spec: sp,
-          // Posts made from a trend keep the trend's name ("Me & me, 10 years ago · Reel").
-          title: entry.kind === "trend" ? `${trendById(entry.id).name} · ${formatWord(sp.format)}` : `${aesthetic(sp.aesthetic).name} ${formatWord(sp.format)}`,
-          trend: entry.kind === "trend" ? entry.id : null,
-          edits: 0,
-          version: 1,
-        },
-        freeDraftsUsed: st.plan === "free" ? st.freeDraftsUsed + 1 : st.freeDraftsUsed,
-      }));
-      push({ name: "draft" });
-    };
     if (sp.photos.length === 0) {
       aiSay("Pick at least one photo first, or tap “Pick for me”.", CHAT.quickPhoto);
       return;
     }
+    // Your own idea (described or from photos): Free preview, Pro full post.
+    if (entry.kind === "own") return startOwnIdea(sp, "Your idea", "describe");
+    // Weekly ideas and trends: 1 free draft a week, carousel only.
+    const go = () => {
+      set((st) => ({ freeDraftsUsed: st.plan === "free" ? st.freeDraftsUsed + 1 : st.freeDraftsUsed }));
+      // Posts made from a trend keep the trend's name ("Me & me, 10 years ago · Reel").
+      openDraft(sp, entry.kind === "trend" ? trendById(entry.id).name : null);
+    };
     if (formatLocked(sp.format)) return requirePro(`${FORMATS[sp.format].label.split(" ")[0]}s are part of Pro`, go);
     if (!isPro && s.freeDraftsUsed >= 1) return requirePro("You've used this week's free draft", go);
     go();
@@ -109,6 +114,19 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
     add({ from: "me", text: t });
     const r = parse(t, spec, s.aesthetics);
     setSpec(r.spec);
+    if (r.action === "templates" && !r.generate) {
+      aiSay(CHAT.toTemplates, CHAT.quickAfterChange);
+      setTimeout(() => push({ name: "templates" }), 1300);
+      return;
+    }
+    if (r.action === "describe" && r.changes.length === 0 && !r.generate) {
+      aiSay(CHAT.describeAsk, CHAT.quickDescribe);
+      return;
+    }
+    if (r.action === "link" && !r.generate) {
+      aiSay(`${CHAT.linkApplied} ${r.spec.photos.length} photos as a ${formatWord(r.spec.format)}. Ready when you are.`, CHAT.quickAfterChange, true);
+      return;
+    }
     if (r.generate) {
       if (r.changes.length) aiSay(describe(r.changes) + " Making it now…", []);
       setTimeout(() => generate(r.spec), r.changes.length ? 900 : 300);
@@ -160,7 +178,7 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
         <button className="p-icon" aria-label="Back" onClick={back}>
           <IconBack />
         </button>
-        <div className="p-title sm">New post</div>
+        <div className="p-title sm">{describing ? "Describe it" : "New post"}</div>
         <span className="chat-spec">
           {aesthetic(spec.aesthetic).name} · {formatWord(spec.format)}
         </span>
@@ -224,7 +242,14 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
             send(text);
           }}
         >
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Tell the AI what you want…" aria-label="Message" data-testid="chat-input" />
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={describing ? CHAT.describePlaceholder : "Tell the AI what you want…"}
+            aria-label="Message"
+            data-testid="chat-input"
+            autoFocus={describing}
+          />
           <button className="send" aria-label="Send" disabled={!text.trim()}>
             <IconSend size={20} />
           </button>

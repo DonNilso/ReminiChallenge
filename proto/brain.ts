@@ -4,7 +4,7 @@
  * free-text *reply wording* can come from a model, but the changes below still drive
  * the draft so the demo stays predictable.
  */
-import { AESTHETICS, ROLL, type Format } from "./data.ts";
+import { AESTHETICS, LINK_DEMO, ROLL, type Format } from "./data.ts";
 
 export type Spec = {
   aesthetic: string;
@@ -20,6 +20,8 @@ export type Parsed = {
   changes: string[]; // human-readable, e.g. "moodier", "4 photos"
   generate: boolean; // user said "make it", "looks good", …
   understood: boolean;
+  /** Ways in that need a screen, not just a draft change. */
+  action?: "link" | "templates" | "describe";
 };
 
 const WORD_NUMBERS: Record<string, number> = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
@@ -70,6 +72,18 @@ export function parse(text: string, spec: Spec, preferred: string[] = []): Parse
   let s: Spec = { ...spec, photos: [...spec.photos] };
   const changes: string[] = [];
   const has = (...w: string[]) => w.some((x) => t.includes(x));
+  let action: Parsed["action"];
+
+  // Bring your own idea: "make it like the link", "use a template", "describe …"
+  if (has("like the link", "same as the link", "recreate the link", "copy the link", "the link's", "like that link", "from the link", "like the tiktok", "like that video")) {
+    s.format = LINK_DEMO.format;
+    s.aesthetic = LINK_DEMO.aesthetic;
+    s.photos = LINK_DEMO.photos.slice(0, LINK_DEMO.cuts);
+    changes.push("the link's format and look");
+    action = "link";
+  }
+  if (has("template")) action = action ?? "templates";
+  if (/\bdescribe\b/.test(t)) action = action ?? "describe";
 
   // look
   if (has("another look", "different look", "other look", "try another")) {
@@ -100,7 +114,7 @@ export function parse(text: string, spec: Spec, preferred: string[] = []): Parse
   // which photos
   if (has("saturday", "city trip", "lisbon")) (s.photos = photosFor("saturday", s.photos.length || 6)), changes.push("Saturday's photos");
   else if (has("friday", "night out", "party", "night")) (s.photos = photosFor("friday", s.photos.length || 6)), changes.push("Friday night's photos");
-  else if (has("food", "ate", "brunch")) (s.photos = photosFor("food", s.photos.length || 5)), changes.push("your food photos");
+  else if (has("food", "brunch") || /\bate\b/.test(t)) (s.photos = photosFor("food", s.photos.length || 5)), changes.push("your food photos");
   else if (has("best photos", "pick for me", "you pick", "best ones")) (s.photos = photosFor("best", s.photos.length || 6)), changes.push("your best photos");
 
   // swap the n-th photo
@@ -127,7 +141,7 @@ export function parse(text: string, spec: Spec, preferred: string[] = []): Parse
   // "make it" only means "go" when nothing follows it ("make it moody" is a change).
   const generate = /\b(looks good|let'?s go|go ahead|create it|do it|yes|perfect|make the draft|generate|make it now)\b/.test(t) || /make it\s*(?:[✨!.]|$)/u.test(t.trim());
   if (s.photos.length === 0) s.photos = photosFor("best", 6);
-  return { spec: s, changes, generate, understood: changes.length > 0 || generate };
+  return { spec: s, changes, generate, understood: changes.length > 0 || generate || !!action, action };
 }
 
 export function describe(changes: string[]): string {

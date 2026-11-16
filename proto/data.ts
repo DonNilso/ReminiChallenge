@@ -340,6 +340,74 @@ export const NOTIFICATIONS = {
   trend: { title: "Film flash is taking off", body: "Film flash is taking off. Here's your version.", trend: "film-flash" },
 };
 
+// ---------------------------------------------------------------- hub copy
+/** Creator Studio is a posting HUB: one tab where creators make, track and post content. */
+export const HUB = {
+  homeSub: "Your posting hub. Make any trend or idea with your own photos.",
+  dashSub: "Your posting hub",
+  waysIn: "Bring any post or idea, or let us bring you ideas every week.",
+  bringTitle: "Bring your idea",
+  bringSub: "Any post, vision or template, made with your photos.",
+  nudgeLabel: "Or let us bring you ideas",
+};
+
+// ---------------------------------------------------------------- Mia's past posts (made with Creator Studio)
+export type PastPost = { photo: string; aesthetic: string; format: Format; label: string; when: string };
+
+export const PAST_POSTS: PastPost[] = [
+  { photo: "wk-beach", aesthetic: "golden-hour", format: "carousel", label: "Beach day", when: "Last week" },
+  { photo: "fri-red", aesthetic: "film-flash", format: "reel", label: "Friday flash", when: "Last week" },
+  { photo: "wk-venice", aesthetic: "old-money", format: "carousel", label: "Venice", when: "2 weeks ago" },
+  { photo: "wk-pink", aesthetic: "soft-glam", format: "story", label: "GRWM", when: "2 weeks ago" },
+  { photo: "wk-coffee", aesthetic: "clean-girl", format: "story", label: "Sunday coffee", when: "3 weeks ago" },
+  { photo: "wk-hike", aesthetic: "90s", format: "carousel", label: "Dolomites", when: "3 weeks ago" },
+];
+
+// ---------------------------------------------------------------- bring a link
+/** The post a creator brings (pasted or shared from TikTok) and what we "read" from it. */
+export const LINK_DEMO = {
+  url: "tiktok.com/@cityloops/video/7311428590236",
+  display: "tiktok.com/@cityloops/video/7311…",
+  platform: "TikTok",
+  author: "@cityloops",
+  caption: "friday in 7 cuts 📸 #filmflash",
+  thumb: "/p/ex-neon.jpg",
+  format: "reel" as Format,
+  cuts: 7,
+  seconds: 12,
+  aesthetic: "film-flash",
+  textOnScreen: "text on beat 2",
+  reading: ["Cuts and pacing", "The look", "Text on screen", "Length"],
+  photos: ["fri-cheers", "fri-red", "fri-bar", "fri-lights", "fri-confetti", "fri-cocktail", "sat-laugh"],
+  name: "Your @cityloops version",
+  promise: "We recreate the format and look, never the content. Add the sound when you post.",
+};
+
+// ---------------------------------------------------------------- templates
+export type Template = { id: string; name: string; format: Format; aesthetic: string; cover: string; photos: string[]; blurb: string };
+
+export const TEMPLATES: Template[] = [
+  { id: "photo-dump", name: "Photo dump", format: "carousel", aesthetic: "90s", cover: "sat-laugh", photos: ["sat-laugh", "sat-coffee", "sat-tram", "fri-cocktail", "sat-pancakes", "sat-friends", "wk-beach"], blurb: "Unfiltered moments, one vibe" },
+  { id: "younger-me", name: "Me & me, 10 years ago", format: "reel", aesthetic: "golden-hour", cover: "duo", photos: ["duo", "me", "me-2016"], blurb: "Talk to your younger self" },
+  { id: "five-outfits", name: "5 outfits on me", format: "carousel", aesthetic: "old-money", cover: "wk-white", photos: ["wk-white", "sat-denim", "fri-red", "wk-pink", "sat-walk"], blurb: "One outfit per slide" },
+  { id: "grwm", name: "Get ready with me", format: "reel", aesthetic: "soft-glam", cover: "wk-pink", photos: ["wk-pink", "me", "fri-lights", "fri-red", "fri-cheers"], blurb: "From mirror to night out" },
+  { id: "day-in-my-life", name: "Day in my life", format: "story", aesthetic: "clean-girl", cover: "wk-coffee", photos: ["wk-coffee", "sat-tram", "wk-bowl", "sat-walk", "sat-sunset"], blurb: "Morning to night in 5 frames" },
+  { id: "golden-carousel", name: "Golden hour carousel", format: "carousel", aesthetic: "golden-hour", cover: "sat-sunset", photos: ["sat-sunset", "sat-sun", "sat-friends", "wk-beach", "sat-street"], blurb: "Warm light on every slide" },
+  { id: "film-flash", name: "Film flash", format: "reel", aesthetic: "film-flash", cover: "fri-red", photos: ["fri-red", "fri-cheers", "fri-bar", "fri-lights", "fri-confetti"], blurb: "Flash, cuts on the beat" },
+];
+
+export const template = (id: string) => TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];
+
+// ---------------------------------------------------------------- Free vs Pro
+export const FREE_VS_PRO: [string, string, string][] = [
+  ["Your own idea (link, description or template)", "Free preview", "Full post"],
+  ["Weekly ideas from your photos", "Enhance-only preview", "Full trend look"],
+  ["Full drafts from weekly ideas", "1 a week", "Unlimited"],
+  ["Formats", "Carousel", "Carousel, Reel, Story"],
+  ["Edits by asking", "3 per draft", "Unlimited"],
+  ["“Made with Remini” mark", "Yes", "No"],
+];
+
 // ---------------------------------------------------------------- chat script
 /** Canned AI lines. {look}, {format}, {from}, {n} are filled in. */
 export const CHAT = {
@@ -356,4 +424,12 @@ export const CHAT = {
   draftReady: "Here's your draft. Ask for any change, like “warmer”, “swap the second photo” or “shorter”.",
   quickDraft: ["Warmer", "Swap the 2nd photo", "Moodier", "Shorter"],
   posted: "Posted! That's {done} of {goal} this week.",
+  // bring your own idea
+  describePlaceholder: "a moody night-out Reel from Friday",
+  greetDescribe: "Describe your vision in a few words, like “a moody night-out Reel from Friday”. I'll pick the photos.",
+  quickDescribe: ["A moody night-out Reel from Friday", "Make it like the link", "Use a template"],
+  linkApplied: "Got it: same format and look as the link, made with your photos.",
+  toTemplates: "Here are templates that fit you. Pick one and I'll do the rest.",
+  describeAsk: "Sure. What's the vision? A mood, a place, a format, anything.",
+  freePreview: "Free preview of your idea. Make the full post with Pro.",
 };

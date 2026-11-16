@@ -1,8 +1,15 @@
 # Remini Creator Studio: clickable prototype
 
-**Creator Studio turns Remini from a one-off trend tool into a weekly posting companion.**
-Every week it suggests ready-to-make posts from the user's own photos, in the trends and
-aesthetics that fit them, for each platform they post on.
+**Creator Studio is a posting hub: one tab in Remini where creators make, track and post
+their content.** Set it up once (face, platforms, aesthetics, past posts), then there are
+two ways in:
+
+1. **You come with an idea:** bring a link to any post, describe your vision, or pick a
+   template. It's made with your own photos in a few clicks.
+2. **It nudges you:** weekly ideas made from your recent photos, plus trend alerts.
+
+It tracks a simple weekly goal ("1 of 3 posted this week") and makes every post for every
+platform: carousel 4:5, Reel/TikTok 9:16 (beat-cut), Story 9:16.
 
 This repo has two parts:
 
@@ -29,40 +36,53 @@ npm run dev
 Open http://localhost:3000. On a laptop it renders in a phone frame; on a phone it runs full
 screen. It also deploys to Vercel as is.
 
-### Demo script (end to end, about 3 minutes)
+### Demo script (about 4 minutes)
 
-1. **Remini home** → the **Creator Studio** card ("Your week of posts, made from your
-   photos"), or the gradient **NEW** tile in the dock.
-2. **Onboarding** (7 steps, progress dots):
+Start with **New user** in the demo panel left of the phone.
+
+1. **Onboarding.** On Remini home, tap the **Creator Studio** card ("Your posting hub. Make
+   any trend or idea with your own photos."), or the gradient **NEW** tile in the dock.
+   Then 7 steps:
    - confirm your face (Person 1)
    - where you post, plus a weekly goal (1× / 3× / daily)
-   - choose your favourite aesthetics
-   - pick a trend to try, or skip: viral content ideas like "Me & me, 10 years ago" (a Reel
-     with your younger self), "5 hairstyles on me", "Dark academia", "Film flash", "Main
-     character", each previewed on your own photo
-   - optionally add screenshots you love
-   - photo access explainer, then the system prompt
-   - payoff: "Your style: film, warm, timeless" with your first 3 ideas (the first one in
-     the trend you picked), then the **trial sheet**
-3. **Dashboard**:
-   - profile with aesthetics and platforms, and "1 of 3 posted this week"; **Edit** changes
-     aesthetics, platforms, weekly goal, the trend to try, or retakes the face profile
-   - **This week for you** (carousel / Reel / Story suggestions made from your photos)
-   - **Rising for you** (trends with example posts plus "You", your version; the trend you
-     picked is first, tagged "Your pick", and is also the first weekly idea)
-   - **Create your own** (from a photo or an idea)
-4. **Create a post**: tap "A carousel from Saturday". The AI greets you with context and
-   picks 6 photos (tap to swap). Type "make it moody, 5 photos" or tap a quick reply, then
-   **Make it ✨** → generating → **draft**.
-5. **Refine by commenting**: "warmer", "swap the 2nd photo", "turn it into a reel",
-   **Try another look**, or switch Carousel / Reel / Story.
-6. **Post** → share sheet (Instagram / TikTok / WhatsApp Status / Save) → **success**, and
-   the goal moves to "2 of 3 posted this week".
-7. **Notifications**: open the demo menu → *Lock screen*.
-   - "A golden-hour carousel from Saturday is ready to make" → dashboard with that idea
+   - favourite aesthetics
+   - a trend to try (or skip)
+   - optional screenshots you love
+   - photo access
+   - payoff: "Bring any post or idea, or let us bring you ideas every week" with your
+     first 3 ideas, then the trial sheet (pick *Continue with Free* to show the Free
+     rules)
+2. **The hub (dashboard).**
+   - Profile: face, aesthetics, platforms, **Your posts** (6 past posts made with Creator
+     Studio), and "1 of 3 posted this week". **Edit** changes all of it.
+   - Below it, **Bring your idea** with three ways: paste a link, describe it, pick a
+     template.
+3. **Bring a link.** The link field is pre-filled with a TikTok link; tap **Go**.
+   - *Reading the post…* (about 1.5 s): cuts and pacing, the look, text on screen, length.
+   - **We found the format:** "Reel · 7 cuts · 12 s · film flash look · text on beat 2".
+     "We recreate the format and look, never the content. Add the sound when you post."
+   - **Your photos that fit** are auto-picked from Friday night; tap to swap. Then **Make
+     my version ✨**.
+   - Free: a watermarked preview of the first frames, and **Make the full post** opens
+     the trial sheet. Pro: generating, then the Reel draft.
+   - Refine by chatting ("warmer and shorter"), then **Post** → share sheet → success
+     ("2 of 3 posted this week").
+4. **Template.** Back on the hub, **Pick a template** opens a gallery: Photo dump, Me & me
+   10 years ago, 5 outfits on me, Get ready with me, Day in my life, Golden hour carousel,
+   Film flash. Each is previewed on Mia's photo with its look. Pick one: the photos are
+   auto-picked, then draft → refine → post. Same Free/Pro rules.
+5. **Describe it.** Opens the AI chat with the input focused ("a moody night-out Reel from
+   Friday"). The chat also understands "make it like the link" and "use a template".
+6. **Nudge.** **This week for you** has ideas made from your photos (carousel / Reel /
+   Story), with your trend pick first. Tap one → chat → **Make it ✨** → draft → refine →
+   post. **Rising for you** lists trends with example posts and your version.
+7. **Shared from TikTok** (demo panel). A mocked system share sheet with Remini selected →
+   *Make my version in Remini* → straight into *Reading the post…*.
+8. **Trend alert.** Demo panel → *Lock screen*.
+   - "Film flash is taking off. Here's your version." → free watermarked preview → *Make
+     the full set* needs Pro.
+   - "A golden-hour carousel from Saturday is ready to make" → the hub with that idea
      highlighted.
-   - "Film flash is taking off. Here's your version." → free watermarked preview → "Make
-     the full set" needs Pro → trial sheet.
 
 ### Demo controls (left of the phone)
 
@@ -73,24 +93,31 @@ switches between:
 - **Returning user**: already onboarded as Mia, opens straight on the dashboard.
 
 It also has a **Free / Pro** switch and jumps to the lock screen (notifications), the trend
-alert and Remini home. It's outside the phone, so it never shows up in the app itself, and
+alert, **Shared from TikTok**, Templates and Remini home. It's outside the phone, so it never shows up in the app itself, and
 it's hidden on phones.
 
 ### Demo menu (hidden)
 
 Long-press the **Remini** wordmark or the **Creator Studio** title, or press the **`**
-(backtick) key. It jumps to any screen (every onboarding step, dashboard, chat, each draft
-format, success, trend alert, lock screen), switches **Free / Pro**, sets the posts-this-week
-count, and resets the demo. The demo state persists in `localStorage`, so a refresh keeps
-your place. Direct links also work: `/?screen=lock`, `/?screen=dashboard`,
-`/?screen=onboarding`, `/?screen=alert`.
+(backtick) key. It jumps to any screen:
+
+- every onboarding step, the dashboard, the chat, each draft format, success, the trend
+  alert and the lock screen
+- **Link: paste**, **Link: reading**, **Link: format found**, **Templates**, **Template
+  draft**, **Shared from TikTok**
+
+It also switches **Free / Pro**, sets the posts-this-week count and resets the demo. The demo
+state persists in `localStorage`, so a refresh keeps your place. Direct links also work:
+`/?screen=lock`, `/?screen=dashboard`, `/?screen=onboarding`, `/?screen=alert`,
+`/?screen=link`, `/?screen=templates`, `/?screen=share`.
 
 ### Free vs Pro (shown with locks and badges)
 
 | | Free | Pro |
 |---|---|---|
+| Your own idea (link, description or template) | Free preview (watermarked first frames) | Full post |
 | Weekly suggestions | Enhance-only previews of your photos | Previews in the trend look |
-| Full drafts | 1 a week, with a small "Made with Remini" mark | Unlimited, no mark |
+| Full drafts from weekly ideas | 1 a week, with a small "Made with Remini" mark | Unlimited, no mark |
 | Formats | Carousel 4:5 | Carousel, Reel 9:16 (beat-cut), Story 9:16 |
 | Edits by asking | 3 per draft | Unlimited |
 
@@ -98,22 +125,29 @@ Pro features open the trial sheet ("3 days free, then €9.99/week"; nothing is 
 
 ### How the prototype is built
 
-- **All mock data is in one file: [`proto/data.ts`](proto/data.ts).** User, camera-roll
-  photos, aesthetics (each with its CSS "look"), weekly suggestions, rising trends,
-  onboarding examples, notifications, chat lines and prices.
+- **All mock data is in one file: [`proto/data.ts`](proto/data.ts).** It holds:
+  - the user, camera-roll photos and past posts (`PAST_POSTS`)
+  - aesthetics (each with its CSS "look"), weekly suggestions and rising trends
+  - the demo link and what we "read" from it (`LINK_DEMO`), and the templates
+    (`TEMPLATES`)
+  - hub copy (`HUB`), the Free vs Pro rows (`FREE_VS_PRO`), notifications, chat lines and
+    prices
 - **Looks:** the user's real photo is shown in each aesthetic with a CSS colour grade,
   overlay, grain, vignette and flash (`Shot` in `proto/ui.tsx`). That stands in for the AI
   restyle, so the same photo visibly changes look. Part 2 shows the real version.
 - **The AI chat is scripted** ([`proto/brain.ts`](proto/brain.ts), unit-tested): it
   understands plain requests like "moody", "warmer", "cooler", "brighter", "6 photos",
   "only three photos", "swap the 2nd photo", "shorter", "turn it into a reel / story", look
-  names, "Saturday", "night out", "food", "pick for me" and "make it". Optional real
+  names, "Saturday", "night out", "food", "pick for me" and "make it", plus the ways in:
+  "make it like the link" (copies the link's format, look and cut count), "use a template"
+  (opens the gallery) and "describe …". Optional real
   replies: set `OPENROUTER_API_KEY` (and optionally `OPENROUTER_MODEL`, default
   `google/gemini-3.1-flash-lite`) and messages the script doesn't understand are answered
   by the model via `/api/chat`. Draft changes stay scripted so the demo is predictable.
 - **Code:** `proto/Prototype.tsx` (shell, transitions, sheets, shortcuts), `proto/store.tsx`
   (screen stack, demo state, Free/Pro rules), `proto/screens/*` (Home, Lock, Onboarding,
-  Dashboard, Chat, Draft, Success, TrendAlert, Sheets), `proto/proto.css` (Remini's visual
+  Dashboard, Chat, Draft, Success, TrendAlert, OwnIdea for link / templates / free preview /
+  share sheet, Sheets), `proto/proto.css` (Remini's visual
   language: `#000` / `#1C1C1E` / `#3A3A3C`, white pills, `#D92D50` / `#FF5C7A`, Outfit).
 - **Photos:** Unsplash placeholders under the Unsplash License, stored in `public/p/`
   (sources in [`public/p/CREDITS.md`](public/p/CREDITS.md)), so the demo works offline.
@@ -291,7 +325,7 @@ the meantime.
 | | |
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
-| `npm test` | 28 unit tests: the prototype's chat parser, plus pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric, trend data, trend ranking |
+| `npm test` | 31 unit tests: the prototype's chat parser (including the ways in), plus pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric, trend data, trend ranking |
 | `npm run lint` | `tsc --noEmit` |
 | `npm run bench -- <folder> [trend]` | Feasibility benchmark (below) |
 | `pytest modal_app` | Offline tests for the Python helpers: output sizing, decoding, Lab conversion, colour lock |
