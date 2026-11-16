@@ -41,7 +41,7 @@ h1 { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02e
 .section-title { font-size: 18px; font-weight: 600; margin: 28px 0 12px; }
 
 /* Buttons */
-.pill { appearance: none; border: 0; cursor: pointer; border-radius: 999px; padding: 15px 26px; font-size: 16px; font-weight: 600;
+.pill { white-space: nowrap; appearance: none; border: 0; cursor: pointer; border-radius: 999px; padding: 15px 26px; font-size: 16px; font-weight: 600;
   background: #fff; color: #000; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .1s, opacity .2s; }
 .pill:active { transform: scale(.98); }
 .pill:disabled { opacity: .35; cursor: not-allowed; }

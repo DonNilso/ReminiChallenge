@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { preparePhoto, type PreparedPhoto } from "@/lib/client/images.ts";
 import { styleViaApi } from "@/lib/client/styleApi.ts";
 import { runStyleSet, type PipelineEvent } from "@/lib/shared/pipeline.ts";
+import Link from "next/link";
+import { IconBack } from "./host/icons.tsx";
+import Paywall from "./Paywall.tsx";
 import ProcessingStep from "./ProcessingStep.tsx";
 import ResultsStep from "./ResultsStep.tsx";
 import TrendStep from "./TrendStep.tsx";
@@ -13,12 +16,17 @@ import UploadStep, { MAX_PHOTOS, MIN_PHOTOS } from "./UploadStep.tsx";
 type Step = "upload" | "trend" | "processing" | "results";
 const STEP_ORDER: Step[] = ["upload", "trend", "processing", "results"];
 
-export default function Studio({ trends }: { trends: TrendCard[] }) {
+const TRIAL_KEY = "cs-mock-trial";
+
+export default function Studio({ trends, initialTrendId = null }: { trends: TrendCard[]; initialTrendId?: string | null }) {
   const [step, setStep] = useState<Step>("upload");
   const [photos, setPhotos] = useState<PreparedPhoto[]>([]);
   const [preparing, setPreparing] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [trendId, setTrendId] = useState<string | null>(null);
+  const [trendId, setTrendId] = useState<string | null>(initialTrendId);
+  // Mock monetisation: previews are free, exporting/sharing needs a (mock) PRO trial.
+  const [trial, setTrial] = useState(false);
+  const [paywallFor, setPaywallFor] = useState<(() => void) | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [stats, setStats] = useState<RunStats | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
@@ -26,6 +34,30 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
   const warmed = useRef(false);
 
   const trend = trends.find((t) => t.id === trendId) ?? null;
+
+  useEffect(() => {
+    try {
+      setTrial(localStorage.getItem(TRIAL_KEY) === "1");
+    } catch {}
+  }, []);
+
+  const gate = useCallback(
+    (action: () => void) => {
+      if (trial) action();
+      else setPaywallFor(() => action);
+    },
+    [trial],
+  );
+
+  const startTrial = () => {
+    try {
+      localStorage.setItem(TRIAL_KEY, "1");
+    } catch {}
+    setTrial(true);
+    const action = paywallFor;
+    setPaywallFor(null);
+    action?.();
+  };
 
   // Which backend is active (shown in the header).
   useEffect(() => {
@@ -141,7 +173,7 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
     photos.forEach((p) => URL.revokeObjectURL(p.url));
     setPhotos([]);
     setSlots([]);
-    setTrendId(null);
+    setTrendId(initialTrendId);
     setStats(null);
     setRunError(null);
     setStep("upload");
@@ -152,7 +184,12 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
   return (
     <main className="shell">
       <header className="topbar">
-        <div className="brand">Creator Studio</div>
+        <div className="left">
+          <Link href="/" className="back" aria-label="Back to home">
+            <IconBack />
+          </Link>
+          <div className="brand">Creator Studio</div>
+        </div>
         {provider === "demo" && (
           <span className="mode demo" title="No AI backend configured: a local colour grade stands in for the model">
             Demo mode
@@ -166,6 +203,12 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
         ))}
       </div>
 
+      {step === "upload" && trend && initialTrendId && (
+        <div className="chip" data-testid="preset-trend">
+          <i style={{ background: `linear-gradient(135deg, ${trend.swatch.join(", ")})` }} />
+          Look: {trend.name}
+        </div>
+      )}
       {step === "upload" && <UploadStep photos={photos} preparing={preparing} error={uploadError} onAdd={addFiles} onRemove={removePhoto} />}
       {step === "trend" && <TrendStep trends={trends} selected={trendId} onSelect={setTrendId} count={photos.length} />}
       {step === "processing" && (
@@ -181,7 +224,8 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
           )}
         </>
       )}
-      {step === "results" && trend && <ResultsStep slots={slots} trendId={trend.id} trendName={trend.name} stats={stats} onRestart={restart} />}
+      {step === "results" && trend && <ResultsStep slots={slots} trendId={trend.id} trendName={trend.name} stats={stats} onRestart={restart} gate={gate} />}
+      {paywallFor && <Paywall slots={slots} onStart={startTrial} onClose={() => setPaywallFor(null)} />}
 
       {step === "upload" && (
         <div className="cta-bar">

@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FitMode } from "@/lib/client/images.ts";
+import { toInstagramPortrait, type FitMode } from "@/lib/client/images.ts";
+import { IconShare } from "./host/icons.tsx";
 import { downloadBlob, buildZip } from "@/lib/client/zip.ts";
 import { makeSlideshow, type VideoResult } from "@/lib/client/video.ts";
 import type { RunStats, Slot } from "./types.ts";
 
-type Props = { slots: Slot[]; trendId: string; trendName: string; stats: RunStats | null; onRestart: () => void };
+type Props = {
+  slots: Slot[];
+  trendId: string;
+  trendName: string;
+  stats: RunStats | null;
+  onRestart: () => void;
+  /** Runs the action now, or after the (mock) paywall when the user has no trial yet. */
+  gate?: (action: () => void) => void;
+};
 
-export default function ResultsStep({ slots, trendId, trendName, stats, onRestart }: Props) {
+export default function ResultsStep({ slots, trendId, trendName, stats, onRestart, gate = (a) => a() }: Props) {
   const done = slots.filter((s) => s.status === "done" && s.styledBlob);
   const failed = slots.filter((s) => s.status === "error");
   const [showBefore, setShowBefore] = useState<Set<string>>(new Set());
@@ -19,6 +28,32 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
   const [videoProgress, setVideoProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const carousel = useRef<HTMLDivElement>(null);
+  const [igFiles, setIgFiles] = useState<File[] | null>(null);
+
+  // Pre-render the 1080x1350 versions so "Share" can open the share sheet immediately
+  // (browsers only allow navigator.share() directly inside the tap).
+  const doneKey = done.map((s) => s.photo.id).join(",");
+  useEffect(() => {
+    let cancelled = false;
+    setIgFiles(null);
+    Promise.all(
+      done.map(async (s, i) => new File([await toInstagramPortrait(s.styledBlob!, fit)], `${trendId}-${String(i + 1).padStart(2, "0")}.jpg`, { type: "image/jpeg" })),
+    )
+      .then((files) => !cancelled && setIgFiles(files))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneKey, fit, trendId]);
+  const canShare = typeof navigator !== "undefined" && !!igFiles && !!navigator.canShare?.({ files: igFiles });
+
+  const onShare = () => {
+    if (!igFiles) return;
+    navigator.share({ files: igFiles, title: `My ${trendName} set` }).catch((e: Error) => {
+      if (e.name !== "AbortError") setError(`Couldn’t open the share sheet: ${e.message}`);
+    });
+  };
 
   useEffect(() => () => {
     if (video) URL.revokeObjectURL(video.url);
@@ -152,7 +187,12 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
       <div className="section-title">Export</div>
       {error && <div className="error">{error}</div>}
       <div className="actions">
-        <button className="pill block" onClick={onZip} disabled={zipping || done.length === 0} data-testid="download-zip">
+        {canShare && (
+          <button className="pill block" onClick={() => gate(onShare)} data-testid="share">
+            <IconShare size={18} /> Share to Instagram
+          </button>
+        )}
+        <button className={`pill block${canShare ? " ghost" : ""}`} onClick={() => gate(onZip)} disabled={zipping || done.length === 0} data-testid="download-zip">
           {zipping ? "Packing…" : `Download ZIP (${done.length} photos${video ? " + video" : ""})`}
         </button>
         <p className="note" style={{ margin: 0 }}>
@@ -169,7 +209,7 @@ export default function ResultsStep({ slots, trendId, trendName, stats, onRestar
         <>
           <video className="preview" src={video.url} controls autoPlay muted loop playsInline data-testid="video" />
           <div className="actions">
-            <button className="pill ghost block" onClick={() => downloadBlob(video.blob, `creator-studio-${trendId}.${video.ext}`)}>
+            <button className="pill ghost block" onClick={() => gate(() => downloadBlob(video.blob, `creator-studio-${trendId}.${video.ext}`))}>
               Download video (.{video.ext})
             </button>
             <p className="note" style={{ margin: 0 }}>No music on purpose: add a trending sound when you post in Instagram or TikTok.</p>

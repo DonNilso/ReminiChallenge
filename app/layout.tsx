@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./host.css";
 
 export const metadata: Metadata = {
   title: "Creator Studio",
@@ -20,7 +21,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* On a laptop the app renders inside a phone frame; on a phone it is full screen. */}
+        <div className="device">
+          <div className="device-scroll" id="device-scroll">
+            {children}
+          </div>
+        </div>
+      </body>
     </html>
   );
 }

@@ -17,6 +17,30 @@ script that produces them is ready to run (see [Feasibility notes](#feasibility-
 
 ---
 
+## The host-app mock: how Creator Studio fits into the app
+
+`/` is a **visual mock of the surrounding photo app**, so you can see where the feature
+lives and how users reach it. Only Creator Studio works; every other button shows a "mock
+screen" toast. There's no Remini logo or name. On a laptop the app renders inside a phone
+frame; on a phone it is full screen.
+
+| Integration point | Where | What it does |
+|---|---|---|
+| Launch banner | Home, right under the core Enhance feature | "NEW · Creator Studio, Make a set" opens `/studio?from=home_banner` |
+| Trends for you | Home, horizontal row | Tapping a trend opens `/studio?trend=<id>`: the look is preselected (chip "Look: Old money") and the user only adds photos |
+| Create (+) sheet | Centre of the tab bar | Creator Studio sits next to Enhance and AI Photos as a creation entry point |
+| Profile | Profile tab | Row back into Creator Studio (later: "my sets") |
+| Paywall | Results, on Share / Download ZIP / Download video | Mock PRO sheet ("Start 7-day free trial"): previews are free, export needs a trial. This is where production would switch from cheap previews to full-resolution renders |
+| Share to Instagram | Results | Real Web Share API with the 1080×1350 files, so on a phone it opens the system share sheet with Instagram. Hidden where the browser can't share files |
+
+The `from=` query parameter marks the entry point. Nothing reads it yet; it's there to show
+where attribution would be logged. The mock trial is stored in `localStorage`
+(`cs-mock-trial`); clear it to see the paywall again. The mock's images are public-domain
+or CC0 sample photos with the demo grade applied (`scripts/make-mock-assets.ts`,
+`public/mock/SOURCES.md`).
+
+---
+
 ## How it works
 
 ```
@@ -297,11 +321,15 @@ not yet observed**:
 
 ```
 app/
-  page.tsx                  server component, passes public trend fields to the client
-  layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges)
+  layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges), phone frame
+  host.css                  styles for the host-app mock
+  (tabs)/                   host-app mock: Home (page.tsx), ai-photos/, profile/, shared tab bar (layout.tsx)
+  studio/page.tsx           Creator Studio (reads ?trend= to preselect a look)
   api/style/route.ts        POST one photo (+ optional reference) and trendId, returns the styled JPEG
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
-components/                 Studio (state machine), UploadStep, TrendStep, ProcessingStep, ResultsStep
+components/                 Studio (state machine), UploadStep, TrendStep, ProcessingStep, ResultsStep, Paywall
+components/host/            host-app mock: HomeScreen, TabBar + Create sheet, MockScreens, icons, toast
+public/mock/                pre-rendered images for the mock (see SOURCES.md)
 data/trends.json            the 6 trends: name, description, rising/steady, style prompt, demo grade
 lib/
   prompt.ts                 identity-preserving prompt; Picture 1 / Picture 2 roles
@@ -319,6 +347,7 @@ lib/
 modal_app/restyle.py        Modal GPU service (Qwen-Image-Edit-2511 + Lightning, colour lock)
 modal_app/test_restyle.py   offline tests for its helpers
 scripts/bench.ts            feasibility benchmark
+scripts/make-mock-assets.ts regenerates public/mock/
 tests/                      node:test unit tests
 ```
 
