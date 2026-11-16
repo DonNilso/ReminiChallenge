@@ -1,38 +1,36 @@
-import type { Trend } from "../trends.ts";
 import { mapLimit } from "./concurrency.ts";
-import type { StyleProvider } from "./providers/types.ts";
 import { isRetryable, withRetry, type RetryOptions } from "./retry.ts";
+
+/**
+ * Runs in the browser (the app: one HTTP request per photo, so every request stays
+ * under serverless body/duration limits) and in Node (scripts/bench.ts, calling the
+ * provider directly). P is a photo (Blob or Buffer), R a styled result.
+ */
 
 export const MAX_PHOTOS = 10;
 export const DEFAULT_CONCURRENCY = 3;
 
-export type PhotoInput = { data: Buffer; name?: string };
+export type Role = "anchor" | "matched";
 
-export type PipelineEvent =
-  | { type: "start"; total: number; provider: string; concurrency: number }
-  | { type: "photo"; index: number; status: "processing"; role: "anchor" | "matched" }
+export type StyleFn<P, R> = (
+  photo: P,
+  reference: R | undefined,
+  ctx: { index: number; role: Role; signal?: AbortSignal },
+) => Promise<{ output: R; inferenceSeconds?: number }>;
+
+export type PipelineEvent<R> =
+  | { type: "start"; total: number; concurrency: number }
+  | { type: "photo"; index: number; status: "processing"; role: Role }
   | { type: "photo"; index: number; status: "retrying"; attempt: number; reason: string; delayMs: number }
-  | {
-      type: "photo";
-      index: number;
-      status: "done";
-      role: "anchor" | "matched";
-      image: string; // base64
-      mime: string;
-      ms: number;
-      attempts: number;
-      inferenceSeconds?: number;
-    }
+  | { type: "photo"; index: number; status: "done"; role: Role; output: R; ms: number; attempts: number; inferenceSeconds?: number }
   | { type: "photo"; index: number; status: "error"; error: string }
   | { type: "done"; ok: number; failed: number; totalMs: number; anchorIndex: number | null };
 
-export type PipelineOptions = {
-  provider: StyleProvider;
-  trend: Trend;
-  photos: PhotoInput[];
-  emit: (e: PipelineEvent) => void;
+export type PipelineOptions<P, R> = {
+  photos: P[];
+  style: StyleFn<P, R>;
+  emit: (e: PipelineEvent<R>) => void;
   concurrency?: number;
-  seed?: number;
   signal?: AbortSignal;
   retry?: RetryOptions;
 };
@@ -46,19 +44,18 @@ export type PipelineOptions = {
  * if it fails because the backend is unavailable, the run stops early.
  * Remaining photos run with a concurrency limit (2–3) and retry on rate limits.
  */
-export async function runStyleSet(opts: PipelineOptions): Promise<void> {
-  const { provider, trend, photos, emit, signal } = opts;
+export async function runStyleSet<P, R>(opts: PipelineOptions<P, R>): Promise<void> {
+  const { photos, style, emit, signal } = opts;
   if (photos.length === 0) throw new Error("No photos");
   if (photos.length > MAX_PHOTOS) throw new Error(`At most ${MAX_PHOTOS} photos per run`);
   const concurrency = Math.max(1, Math.min(3, opts.concurrency ?? DEFAULT_CONCURRENCY));
-  const seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
   const t0 = Date.now();
   let ok = 0;
   let failed = 0;
 
-  emit({ type: "start", total: photos.length, provider: provider.name, concurrency });
+  emit({ type: "start", total: photos.length, concurrency });
 
-  const styleOne = async (index: number, role: "anchor" | "matched", reference?: Buffer): Promise<Buffer> => {
+  const styleOne = async (index: number, role: Role, reference?: R): Promise<R> => {
     emit({ type: "photo", index, status: "processing", role });
     const started = Date.now();
     let attempts = 0;
@@ -66,7 +63,7 @@ export async function runStyleSet(opts: PipelineOptions): Promise<void> {
       (attempt) => {
         attempts = attempt;
         if (signal?.aborted) throw new Error("Cancelled");
-        return provider.style({ image: photos[index].data, reference, trend, seed, signal });
+        return style(photos[index], reference, { index, role, signal });
       },
       {
         ...opts.retry,
@@ -80,19 +77,18 @@ export async function runStyleSet(opts: PipelineOptions): Promise<void> {
       index,
       status: "done",
       role,
-      image: result.image.toString("base64"),
-      mime: result.mime,
+      output: result.output,
       ms: Date.now() - started,
       attempts,
       inferenceSeconds: result.inferenceSeconds,
     });
-    return result.image;
+    return result.output;
   };
 
   // 1. Anchor
-  let anchor: Buffer | undefined;
+  let anchor: R | undefined;
   let anchorIndex: number | null = null;
-  for (let i = 0; i < photos.length && !anchor; i++) {
+  for (let i = 0; i < photos.length && anchorIndex === null; i++) {
     if (signal?.aborted) break;
     try {
       anchor = await styleOne(i, "anchor");
@@ -114,7 +110,7 @@ export async function runStyleSet(opts: PipelineOptions): Promise<void> {
   }
 
   // 2. Everything after the anchor, matched to it
-  if (anchor && anchorIndex !== null) {
+  if (anchorIndex !== null) {
     const rest = photos.map((_, i) => i).filter((i) => i > anchorIndex!);
     const results = await mapLimit(rest, concurrency, (i) => styleOne(i, "matched", anchor));
     results.forEach((r, k) => {

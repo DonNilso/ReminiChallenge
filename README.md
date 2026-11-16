@@ -20,19 +20,25 @@ script that produces them is ready to run (see [Feasibility notes](#feasibility-
 ## How it works
 
 ```
-Browser (Next.js, mobile-first)                    Next.js API route (Node)                 Modal (1x H100 per container)
-───────────────────────────────                    ────────────────────────                 ─────────────────────────────
-1. pick 3–10 photos (JPG/PNG/HEIC)
-   EXIF-rotate + downscale to 1600px  ──POST──▶  /api/style  (max 10 photos)
-2. pick a trend                                    photo 1 ─────────────── restyle ──────▶  Qwen-Image-Edit-2511
-                                                     (style prompt only)                 ◀──  + Lightning 4-step LoRA
-                                                   photos 2..n, 3 at a time ─ restyle ───▶  Picture 1 = photo,
-                                                     (same prompt + styled photo 1         Picture 2 = style ref,
-                                                      as style reference)              ◀──  then Lab colour-lock
-3. progress "3 of 8 done"  ◀──NDJSON stream──      retries on 429/5xx with backoff
+Browser (Next.js, mobile-first)                  Next.js API route /api/style        Modal (1x H100 per container)
+───────────────────────────────                  ────────────────────────────        ─────────────────────────────
+1. pick 3–10 photos (JPG/PNG/HEIC),
+   EXIF-rotate, downscale to 1600 px, < 1.8 MB
+2. pick a trend
+3. run the set (lib/shared/pipeline.ts):
+   photo 1 alone            ──POST photo──────▶  adds style prompt,  ──restyle──▶  Qwen-Image-Edit-2511
+                            ◀──styled JPEG─────  retries 429/503     ◀──────────   + Lightning 4-step LoRA
+   photos 2..n, 3 at a time ──POST photo + ───▶  same, with the      ──restyle──▶  Picture 1 = photo,
+                              styled photo 1     reference            ◀──────────   Picture 2 = style ref,
+                            ◀──styled JPEG─────                                     then Lab colour lock
+   "3 of 8 done", retries on 5xx / timeouts
 4. before/after grid, carousel preview
 5. ZIP (full size + 1080x1350) and a 15 s MP4, both built in the browser
 ```
+
+One request per photo keeps every request small (at most about 2 MB with the reference) and
+short, which fits serverless limits such as Vercel's 4.5 MB request body and 300 s duration.
+Trend style prompts never leave the server; the browser only sends a trend ID.
 
 ### Getting a consistent look across the set
 
@@ -143,12 +149,24 @@ Deploy-time switches (environment variables when running `modal deploy`): `CS_GP
 `CS_MODEL_ID`, `CS_LORA_REPO`, `CS_LORA_FILE`. App-side: `COLOR_LOCK` (0–1, default 0.35),
 `DEMO_MODE=1`.
 
+### Deploy the web app on Vercel
+
+Import the repo in Vercel (framework: Next.js, no build settings needed). Without
+environment variables it runs in **demo mode**, which is enough to try the flow on a phone.
+To use the real model, add `MODAL_ENDPOINT_URL`, `MODAL_PROXY_KEY` and `MODAL_PROXY_SECRET`
+under Project → Settings → Environment Variables and redeploy.
+
+Limits this is built around: `/api/style` sets `maxDuration = 300` (the Hobby maximum). The
+Modal call times out after 270 s (`MODAL_TIMEOUT_MS`), so a very slow cold start ends in a
+clean 504. The browser then retries and reaches the container that has finished booting in
+the meantime.
+
 ### Scripts
 
 | | |
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
-| `npm test` | 15 unit tests: pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric |
+| `npm test` | 16 unit tests: pipeline order and anchor logic, concurrency limit, retries, Modal request shape and auth, demo grade, consistency metric |
 | `npm run lint` | `tsc --noEmit` |
 | `npm run bench -- <folder> [trend]` | Feasibility benchmark (below) |
 | `pytest modal_app` | Offline tests for the Python helpers: output sizing, decoding, Lab conversion, colour lock |
@@ -193,11 +211,12 @@ $0.10–$0.90 per run.
 - **Video:** made in the browser with WebCodecs plus an MP4 muxer (H.264, 1080×1350, 30 fps,
   15 s, cuts every 1.5 s, Ken Burns, no audio). Browsers without WebCodecs H.264 fall back to
   real-time `MediaRecorder`, which gives MP4 in Safari and WebM in Firefox.
-- **Request size:** all photos go in one multipart request (about 3–6 MB for 10 photos).
-  Fine locally; behind a hosting provider with a body limit (for example 4.5 MB on Vercel
-  functions) you would upload per photo or to object storage first.
-- **No auth or rate limiting** on the Next.js API; anyone who can reach it can spend your
-  GPU budget.
+- **The set logic runs in the browser.** The browser drives the anchor-then-match order, the
+  concurrency limit of 3 and the 10-photo cap. The server only styles single photos, so
+  the cap is a UI rule, not a server-enforced one.
+- **No auth or rate limiting** on the Next.js API; anyone who can reach a deployed app can
+  spend your GPU budget. Add auth or a rate limit before sharing a URL that has Modal
+  configured.
 - **Privacy:** photos live only in memory (browser, API route, Modal container) for the
   duration of the request. Nothing is written to disk or logged, apart from model weights in
   the Modal Volume.
@@ -211,6 +230,7 @@ $0.10–$0.90 per run.
 | What | Result |
 |---|---|
 | End-to-end flow in Chromium on an iPhone 13 viewport (demo provider) | Upload 5 photos, then trend, progress ("1 of 5 … 5 of 5 done"), before/after toggle, carousel (fill and fit), ZIP, MP4: all pass |
+| Request sizes (one request per photo) | Phone-sized samples: 67–200 KB per request. Worst case, three 12 MP pure-noise JPEGs (12 MB each, barely compressible): about 1.0 MB for photo 1 and about 2.0 MB with the reference. Well under Vercel's 4.5 MB |
 | Real Modal client path, against a stand-in server that speaks the same API | Proxy-auth headers sent; two `429`s retried after `Retry-After`; anchor sent with no reference; photos 2–4 sent with reference, `color_lock=0.35` and the same seed |
 | Export | ZIP holds `styled/*.jpg` (full size) and `instagram-1080x1350/*.jpg` (all exactly 1080×1350), plus the video if one was made |
 | Video | H.264 High profile, 1080×1350, 30 fps, **15.000 s, 450 frames**, keyframes at 0, 1.5, 3, … 13.5 s. Rendering in the browser takes a few seconds on a laptop |
@@ -279,19 +299,21 @@ not yet observed**:
 app/
   page.tsx                  server component, passes public trend fields to the client
   layout.tsx, globals.css   Remini-style dark UI (Outfit, #1C1C1E cards, white pills, #D92D50 badges)
-  api/style/route.ts        POST multipart photos and trendId, returns an NDJSON progress stream
+  api/style/route.ts        POST one photo (+ optional reference) and trendId, returns the styled JPEG
   api/warmup/route.ts       GET: active backend; POST: pre-warm a GPU container on first upload
 components/                 Studio (state machine), UploadStep, TrendStep, ProcessingStep, ResultsStep
 data/trends.json            the 6 trends: name, description, rising/steady, style prompt, demo grade
 lib/
   prompt.ts                 identity-preserving prompt; Picture 1 / Picture 2 roles
   trends.ts
-  server/pipeline.ts        anchor then reference strategy, concurrency 3, retries, 10-photo cap
-  server/retry.ts           backoff with jitter, Retry-After
-  server/concurrency.ts
+  shared/pipeline.ts        anchor-then-reference strategy, concurrency 3, retries, 10-photo cap
+                            (runs in the browser for the app and in Node for the benchmark)
+  shared/retry.ts           backoff with jitter, Retry-After
+  shared/concurrency.ts
   server/consistency.ts     Lab "look spread" metric for the benchmark
   server/providers/         modal.ts (HTTP client), demo.ts (sharp grade), index.ts (choose)
-  client/images.ts          HEIC, EXIF, 1600 px downscale, 1080x1350 crop/pad
+  client/images.ts          HEIC, EXIF, 1600 px downscale (< 1.8 MB), 1080x1350 crop/pad
+  client/styleApi.ts        calls /api/style for one photo
   client/zip.ts             JSZip export
   client/video.ts           15 s Ken Burns slideshow, WebCodecs to MP4 (MediaRecorder fallback)
 modal_app/restyle.py        Modal GPU service (Qwen-Image-Edit-2511 + Lightning, colour lock)

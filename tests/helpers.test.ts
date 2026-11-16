@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import sharp from "sharp";
 import { buildPrompt } from "../lib/prompt.ts";
-import { mapLimit } from "../lib/server/concurrency.ts";
-import { HttpError, parseRetryAfter, withRetry } from "../lib/server/retry.ts";
+import { mapLimit } from "../lib/shared/concurrency.ts";
+import { HttpError, parseRetryAfter, withRetry } from "../lib/shared/retry.ts";
 import { createModalProvider } from "../lib/server/providers/modal.ts";
 import { applyGrade } from "../lib/server/providers/demo.ts";
 import { getProvider } from "../lib/server/providers/index.ts";
@@ -151,4 +151,30 @@ test("look spread: identical colours spread 0, different colours spread more", a
   const diff = await Promise.all([solid(200, 120, 60), solid(40, 90, 200)].map(async (b) => meanLab(await b)));
   assert.ok(spread(same) < 0.01);
   assert.ok(spread(diff) > 20);
+});
+
+test("withRetry: custom shouldRetry and capped Retry-After", async () => {
+  let calls = 0;
+  await assert.rejects(
+    withRetry(
+      async () => {
+        calls++;
+        const e = new Error("timed out");
+        e.name = "TimeoutError";
+        throw e;
+      },
+      { shouldRetry: (e) => e instanceof HttpError && e.status === 429, sleep: async () => {} },
+    ),
+  );
+  assert.equal(calls, 1);
+  const delays: number[] = [];
+  let n = 0;
+  await withRetry(
+    async () => {
+      if (n++ === 0) throw new HttpError("slow", 429, 120_000);
+      return 1;
+    },
+    { maxDelayMs: 8000, sleep: async (ms) => void delays.push(ms) },
+  );
+  assert.deepEqual(delays, [8000]);
 });

@@ -23,20 +23,28 @@ export type RetryOptions = {
   baseDelayMs?: number;
   maxDelayMs?: number;
   onRetry?: (attempt: number, err: unknown, delayMs: number) => void;
+  shouldRetry?: (err: unknown) => boolean; // default: isRetryable
   sleep?: (ms: number) => Promise<void>;
 };
 
 /** Exponential backoff with full jitter; honours Retry-After when the server sends one. */
 export async function withRetry<T>(fn: (attempt: number) => Promise<T>, opts: RetryOptions = {}): Promise<T> {
-  const { retries = 4, baseDelayMs = 1500, maxDelayMs = 20_000, onRetry, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = opts;
+  const {
+    retries = 4,
+    baseDelayMs = 1500,
+    maxDelayMs = 20_000,
+    onRetry,
+    shouldRetry = isRetryable,
+    sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
+  } = opts;
   for (let attempt = 1; ; attempt++) {
     try {
       return await fn(attempt);
     } catch (err) {
-      if (attempt > retries || !isRetryable(err)) throw err;
+      if (attempt > retries || !shouldRetry(err)) throw err;
       const backoff = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
       const hinted = err instanceof HttpError ? err.retryAfterMs : undefined;
-      const delay = hinted ?? Math.round(backoff / 2 + Math.random() * (backoff / 2));
+      const delay = hinted !== undefined ? Math.min(hinted, maxDelayMs) : Math.round(backoff / 2 + Math.random() * (backoff / 2));
       onRetry?.(attempt, err, delay);
       await sleep(delay);
     }

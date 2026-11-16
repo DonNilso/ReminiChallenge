@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { base64ToBlob, preparePhoto, type PreparedPhoto } from "@/lib/client/images.ts";
-import { readNdjson } from "@/lib/client/ndjson.ts";
-import type { PipelineEvent } from "@/lib/server/pipeline.ts";
+import { preparePhoto, type PreparedPhoto } from "@/lib/client/images.ts";
+import { styleViaApi } from "@/lib/client/styleApi.ts";
+import { runStyleSet, type PipelineEvent } from "@/lib/shared/pipeline.ts";
 import ProcessingStep from "./ProcessingStep.tsx";
 import ResultsStep from "./ResultsStep.tsx";
 import TrendStep from "./TrendStep.tsx";
@@ -75,67 +75,64 @@ export default function Studio({ trends }: { trends: TrendCard[] }) {
 
   const run = async () => {
     if (!trend) return;
-    const initial: Slot[] = photos.map((photo) => ({ photo, status: "queued" }));
-    setSlots(initial);
+    setSlots(photos.map((photo) => ({ photo, status: "queued" })));
     setStats(null);
     setRunError(null);
     setStep("processing");
 
-    const form = new FormData();
-    form.append("trendId", trend.id);
-    photos.forEach((p, i) => form.append("photos", p.blob, `photo-${String(i + 1).padStart(2, "0")}.jpg`));
-
     const patch = (index: number, update: Partial<Slot>) =>
       setSlots((prev) => prev.map((s, i) => (i === index ? { ...s, ...update } : s)));
 
-    let usedProvider = provider ?? "unknown";
-    let final: Extract<PipelineEvent, { type: "done" }> | null = null;
+    // Same seed for every photo of the set.
+    const seed = Math.floor(Math.random() * 2 ** 31);
+    let final: Extract<PipelineEvent<Blob>, { type: "done" }> | null = null;
     const durations: number[] = [];
+    let lastError: string | null = null;
     try {
-      const res = await fetch("/api/style", { method: "POST", body: form });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? `Server error ${res.status}`);
-      }
-      await readNdjson<PipelineEvent>(res, (e) => {
-        if (e.type === "start") {
-          usedProvider = e.provider;
-          setProvider(e.provider);
-        } else if (e.type === "photo") {
-          if (e.index < 0) {
-            if (e.status === "error") setRunError(e.error);
-            return;
+      await runStyleSet<Blob, Blob>({
+        photos: photos.map((p) => p.blob),
+        style: styleViaApi(trend.id, seed),
+        concurrency: 3,
+        retry: { retries: 3, baseDelayMs: 2000 },
+        emit: (e) => {
+          if (e.type === "photo") {
+            if (e.status === "processing") patch(e.index, { status: "processing", role: e.role });
+            else if (e.status === "retrying") patch(e.index, { status: "retrying" });
+            else if (e.status === "error") {
+              lastError = e.error;
+              patch(e.index, { status: "error", error: e.error });
+            } else if (e.status === "done") {
+              durations.push(e.ms);
+              patch(e.index, {
+                status: "done",
+                styledBlob: e.output,
+                styledUrl: URL.createObjectURL(e.output),
+                ms: e.ms,
+                attempts: e.attempts,
+                role: e.role,
+              });
+            }
+          } else if (e.type === "done") {
+            final = e;
           }
-          if (e.status === "processing") patch(e.index, { status: "processing", role: e.role });
-          else if (e.status === "retrying") patch(e.index, { status: "retrying" });
-          else if (e.status === "error") patch(e.index, { status: "error", error: e.error });
-          else if (e.status === "done") {
-            const blob = base64ToBlob(e.image, e.mime);
-            durations.push(e.ms);
-            patch(e.index, { status: "done", styledBlob: blob, styledUrl: URL.createObjectURL(blob), ms: e.ms, attempts: e.attempts, role: e.role });
-          }
-        } else if (e.type === "done") {
-          final = e;
-        }
+        },
       });
     } catch (e) {
-      setRunError((e as Error).message);
+      lastError = (e as Error).message;
     }
 
-    const f = final as Extract<PipelineEvent, { type: "done" }> | null;
+    const f = final as Extract<PipelineEvent<Blob>, { type: "done" }> | null;
     if (f && f.ok > 0) {
       setStats({
-        provider: usedProvider,
+        provider: provider ?? "unknown",
         totalMs: f.totalMs,
         ok: f.ok,
         failed: f.failed,
         avgMs: durations.reduce((a, b) => a + b, 0) / Math.max(1, durations.length),
       });
       setStep("results");
-    } else if (!f) {
-      setRunError((prev) => prev ?? "The connection dropped before the set finished.");
     } else {
-      setRunError((prev) => prev ?? "None of the photos could be styled.");
+      setRunError(`None of the photos could be styled.${lastError ? ` ${lastError}` : ""}`);
     }
   };
 

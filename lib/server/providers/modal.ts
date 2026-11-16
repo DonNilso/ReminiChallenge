@@ -1,5 +1,5 @@
 import { buildPrompt } from "../../prompt.ts";
-import { HttpError, parseRetryAfter } from "../retry.ts";
+import { HttpError, parseRetryAfter } from "../../shared/retry.ts";
 import type { StyleProvider, StyleRequest, StyleResult } from "./types.ts";
 
 export type ModalConfig = {

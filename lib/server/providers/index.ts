@@ -12,7 +12,9 @@ export function getProvider(env: NodeJS.ProcessEnv = process.env): StyleProvider
     proxyKey: env.MODAL_PROXY_KEY?.trim(),
     proxySecret: env.MODAL_PROXY_SECRET?.trim(),
     colorLock: env.COLOR_LOCK ? Number(env.COLOR_LOCK) : 0.35,
-    timeoutMs: 10 * 60_000, // first request may include a cold start (model load)
+    // Must end before the serverless function does (300 s on Vercel Hobby). A cold start
+    // that takes longer times out here; the browser retries and hits the now-warm container.
+    timeoutMs: env.MODAL_TIMEOUT_MS ? Number(env.MODAL_TIMEOUT_MS) : 270_000,
   });
 }
 

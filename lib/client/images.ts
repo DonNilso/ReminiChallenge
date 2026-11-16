@@ -1,6 +1,7 @@
 "use client";
 
 export const MAX_EDGE = 1600;
+export const MAX_UPLOAD_BYTES = 1.8 * 1024 * 1024;
 export const IG_WIDTH = 1080;
 export const IG_HEIGHT = 1350;
 
@@ -38,7 +39,12 @@ export async function preparePhoto(file: File): Promise<PreparedPhoto> {
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
-  const blob = await canvasToBlob(canvas, "image/jpeg", 0.9);
+  // Stay well under the per-request upload budget (photo + reference < 4.5 MB on Vercel).
+  let blob = await canvasToBlob(canvas, "image/jpeg", 0.9);
+  for (const q of [0.82, 0.72, 0.6]) {
+    if (blob.size <= MAX_UPLOAD_BYTES) break;
+    blob = await canvasToBlob(canvas, "image/jpeg", q);
+  }
   return { id: crypto.randomUUID(), name: file.name, blob, url: URL.createObjectURL(blob), width, height };
 }
 
@@ -70,13 +76,6 @@ export async function toInstagramPortrait(src: Blob, mode: FitMode): Promise<Blo
   }
   bmp.close();
   return canvasToBlob(canvas, "image/jpeg", 0.92);
-}
-
-export function base64ToBlob(b64: string, mime: string): Blob {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
 }
 
 type AnyCanvas = HTMLCanvasElement | OffscreenCanvas;

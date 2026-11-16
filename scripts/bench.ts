@@ -13,7 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import { runStyleSet, MAX_PHOTOS, type PipelineEvent } from "../lib/server/pipeline.ts";
+import { runStyleSet, MAX_PHOTOS, type PipelineEvent } from "../lib/shared/pipeline.ts";
 import { getProvider } from "../lib/server/providers/index.ts";
 import { meanLab, spread } from "../lib/server/consistency.ts";
 import { TRENDS } from "../lib/trends.ts";
@@ -51,17 +51,20 @@ console.log(`provider=${provider.name} photos=${photos.length} out=${outDir}\n`)
 
 const report: Record<string, unknown>[] = [];
 for (const trend of TRENDS.filter((t) => !only || t.id === only)) {
-  const done: Extract<PipelineEvent, { status: "done" }>[] = [];
+  const done: Extract<PipelineEvent<Buffer>, { status: "done" }>[] = [];
   const errors: string[] = [];
   let totalMs = 0;
-  await runStyleSet({
-    provider,
-    trend,
-    photos,
+  const seed = Math.floor(Math.random() * 2 ** 31);
+  await runStyleSet<Buffer, Buffer>({
+    photos: photos.map((p) => p.data),
+    style: async (image, reference) => {
+      const r = await provider.style({ image, reference, trend, seed });
+      return { output: r.image, inferenceSeconds: r.inferenceSeconds };
+    },
     emit: (e) => {
       if (e.type === "photo" && e.status === "done") {
         done.push(e);
-        fs.writeFileSync(path.join(outDir, `${trend.id}-${String(e.index + 1).padStart(2, "0")}-${e.role}.jpg`), Buffer.from(e.image, "base64"));
+        fs.writeFileSync(path.join(outDir, `${trend.id}-${String(e.index + 1).padStart(2, "0")}-${e.role}.jpg`), e.output);
         process.stdout.write(".");
       } else if (e.type === "photo" && e.status === "retrying") process.stdout.write("r");
       else if (e.type === "photo" && e.status === "error") {
@@ -70,7 +73,7 @@ for (const trend of TRENDS.filter((t) => !only || t.id === only)) {
       } else if (e.type === "done") totalMs = e.totalMs;
     },
   });
-  const styledLabs = await Promise.all(done.map((d) => meanLab(Buffer.from(d.image, "base64"))));
+  const styledLabs = await Promise.all(done.map((d) => meanLab(d.output)));
   const gpuSeconds = done.reduce((s, d) => s + (d.inferenceSeconds ?? 0), 0);
   const row = {
     trend: trend.id,
