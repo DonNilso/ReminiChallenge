@@ -210,7 +210,11 @@ function PhotoFit({
   testId: string;
 }) {
   const { isPro } = useProto();
-  const [sel, setSel] = useState<string[]>(initial);
+  // You bring the idea, so you choose the photos. Only frames made from your face
+  // profile (e.g. "now / then") are included for you; the photos that fit come first.
+  const generated = initial.filter((id) => !ROLL.some((p) => p.id === id));
+  const suggestedCount = initial.length - generated.length;
+  const [sel, setSel] = useState<string[]>(generated);
   const pool = useMemo(() => {
     const extra = initial.filter((id) => !ROLL.some((p) => p.id === id)).map(photo);
     const day = photo(initial.find((id) => ROLL.some((p) => p.id === id)) ?? "").when;
@@ -223,17 +227,19 @@ function PhotoFit({
       <Top title={title} onBack={onBack} />
       {children}
       <div className="sec" style={{ marginTop: 18 }}>
-        <h2>Your photos that fit</h2>
-        <span className="sec-note">{sel.length} picked</span>
+        <h2>Choose your photos</h2>
+        <span className="sec-note" data-testid="chosen-count">
+          {sel.filter((id) => ROLL.some((p) => p.id === id)).length} chosen{suggestedCount ? ` · ${suggestedCount} fit best` : ""}
+        </span>
       </div>
       <p className="own-fine" style={{ marginTop: -6 }}>
-        Picked automatically. Tap to swap.
+        {generated.length ? "Made from your face profile, plus the photos you choose. " : ""}The ones that fit are first.
       </p>
       <div className="picker fit" data-testid="fit-picker">
         {pool.map((p) => {
           const i = sel.indexOf(p.id);
           return (
-            <button key={p.id} className={`pk${i >= 0 ? " on" : ""}`} onClick={() => toggle(p.id)}>
+            <button key={p.id} className={`pk${i >= 0 ? " on" : ""}${initial.includes(p.id) && i < 0 ? " fits" : ""}`} onClick={() => toggle(p.id)}>
               <Shot src={p.src} look={i >= 0 ? aesthetic(aes).look : lookFor(null)} />
               {i >= 0 && <span className="pk-n">{i + 1}</span>}
             </button>
@@ -242,7 +248,7 @@ function PhotoFit({
       </div>
       <div className="own-cta">
         <button className="pill-w block" disabled={sel.length === 0} onClick={() => onMake(sel)} data-testid="make-version">
-          {cta}
+          {sel.length === 0 ? "Choose at least 1 photo" : cta}
         </button>
         <div className="own-fine center">
           {FORMATS[format].label} · {isPro ? "full post" : "free preview, full post with Pro"}

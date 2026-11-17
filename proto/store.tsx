@@ -26,7 +26,8 @@ export type Screen =
   | { name: "template"; id: string }
   | { name: "preview"; spec: Spec; title: string; source: "link" | "template" | "describe" }
   | { name: "shareIn" }
-  | { name: "explore"; filter?: string };
+  | { name: "explore"; filter?: string }
+  | { name: "intro" }; // Creator Studio slide inside Remini's own onboarding
 
 export type Sheet =
   | { kind: "paywall"; reason: string; then?: () => void }
@@ -37,7 +38,7 @@ export type Sheet =
 
 // ---------------------------------------------------------------- persisted demo state
 /** `name` (a trend, template or link) is kept in the title when the draft changes. */
-export type Draft = { spec: Spec; title: string; edits: number; version: number; name?: string | null };
+export type Draft = { spec: Spec; title: string; edits: number; version: number; name?: string | null; variation?: number; note?: string };
 
 export const formatWord = (f: Format) => (f === "carousel" ? "carousel" : f === "reel" ? "Reel" : "Story");
 export const draftTitle = (spec: Spec, name: string | null | undefined, lookName: string) =>
@@ -50,6 +51,10 @@ export type DemoState = {
   goal: number; // posts per week: 1, 3 or 7
   aesthetics: string[]; // picked in onboarding
   trendToTry: string | null; // picked in onboarding: the first idea is made in it
+  topics: string[]; // what they post about
+  inspoLink: boolean; // added a link of a post they love in onboarding
+  album: string | null; // photo access denied: picked an album instead
+  dismissedTrends: string[];
   inspirations: number; // uploaded screenshots
   photoAccess: "full" | "limited" | "none";
   posted: number; // posts this week
@@ -66,6 +71,10 @@ export const INITIAL: DemoState = {
   goal: 3,
   aesthetics: ["film-flash", "golden-hour", "old-money"],
   trendToTry: null,
+  topics: ["Travel", "Friends", "Food"],
+  inspoLink: false,
+  album: null,
+  dismissedTrends: [],
   inspirations: 0,
   photoAccess: "full",
   posted: 1,
@@ -103,7 +112,7 @@ type Ctx = {
    */
   startOwnIdea: (spec: Spec, name: string, source: "link" | "template" | "describe") => void;
   /** Store a new draft and open it (the Draft screen shows the generating state first). */
-  openDraft: (spec: Spec, name: string | null, opts?: { replace?: boolean }) => void;
+  openDraft: (spec: Spec, name: string | null, opts?: { replace?: boolean; note?: string }) => void;
 };
 
 const C = createContext<Ctx | null>(null);
@@ -179,9 +188,9 @@ export function ProtoProvider({ children, initialScreen }: { children: ReactNode
   );
 
   const openDraft = useCallback(
-    (spec: Spec, name: string | null, opts?: { replace?: boolean }) => {
+    (spec: Spec, name: string | null, opts?: { replace?: boolean; note?: string }) => {
       const lookName = aesthetic(spec.aesthetic).name;
-      setS((prev) => ({ ...prev, draft: { spec, title: draftTitle(spec, name, lookName), name, edits: 0, version: 1 } }));
+      setS((prev) => ({ ...prev, draft: { spec, title: draftTitle(spec, name, lookName), name, edits: 0, version: 1, variation: 1, note: opts?.note } }));
       setDir(opts?.replace ? "fade" : "push");
       setStack((st) => (opts?.replace ? [...st.slice(0, -1), { name: "draft" }] : [...st, { name: "draft" }]));
     },

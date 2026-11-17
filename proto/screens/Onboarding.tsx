@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AESTHETICS, GOALS, HUB, INSPIRATION_UPLOADS, PLATFORMS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion } from "../data.ts";
+import { ALBUMS, AESTHETICS, GOALS, HUB, INSPIRATION_UPLOADS, LINK_DEMO, TOPICS, PLATFORMS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion } from "../data.ts";
 import { useProto } from "../store.tsx";
 import { Dots, IconBack, IconCheck, IconImage, IconShield, IconTrend, IconUpload, Shot } from "../ui.tsx";
 import { SuggestionCard } from "./Dashboard.tsx";
@@ -82,11 +82,25 @@ function Platforms({ onNext }: { onNext: () => void }) {
   return (
     <>
       <h1 className="onb-h">Where do you post?</h1>
-      <p className="onb-p">We make each idea in the right format: 4:5 carousels, 9:16 Reels and Stories.</p>
+      <p className="onb-p">We make each idea in the right format for where it goes.</p>
       <div className="big-chips">
         {PLATFORMS.map((p) => (
           <button key={p} className={`big-chip${s.platforms.includes(p) ? " on" : ""}`} onClick={() => toggle(p)} aria-pressed={s.platforms.includes(p)}>
             {s.platforms.includes(p) && <IconCheck size={16} />} {p}
+          </button>
+        ))}
+      </div>
+      <h2 className="onb-h2">What do you post about?</h2>
+      <div className="big-chips sm">
+        {TOPICS.map((t) => (
+          <button
+            key={t}
+            className={`big-chip${s.topics.includes(t) ? " on" : ""}`}
+            onClick={() => set((st) => ({ topics: st.topics.includes(t) ? st.topics.filter((x) => x !== t) : [...st.topics, t] }))}
+            aria-pressed={s.topics.includes(t)}
+            data-testid={`topic-${t}`}
+          >
+            {t}
           </button>
         ))}
       </div>
@@ -198,7 +212,7 @@ function Inspiration({ onNext }: { onNext: () => void }) {
     <>
       <span className="opt">Optional</span>
       <h1 className="onb-h">Add posts you love</h1>
-      <p className="onb-p">Upload screenshots from Instagram, TikTok or Pinterest. We'll learn the look, not the content.</p>
+      <p className="onb-p">Add screenshots or links from Instagram, TikTok or Pinterest. We'll learn the look, not the content.</p>
       <div className="insp">
         {INSPIRATION_UPLOADS.slice(0, s.inspirations).map((u) => (
           <div key={u.src} className="insp-shot">
@@ -213,12 +227,36 @@ function Inspiration({ onNext }: { onNext: () => void }) {
           </button>
         )}
       </div>
+      <div className="insp-link">
+        {s.inspoLink ? (
+          <div className="insp-link-card" data-testid="insp-link-added">
+            <IconCheck size={16} />
+            <span>
+              <b>{LINK_DEMO.display}</b>
+              <small>Read for its format and look only</small>
+            </span>
+          </div>
+        ) : (
+          <form
+            className="link-field"
+            onSubmit={(e) => {
+              e.preventDefault();
+              set({ inspoLink: true });
+            }}
+          >
+            <input defaultValue="" placeholder="Paste a link to a post you love" aria-label="Link to a post you love" data-testid="insp-link" />
+            <button className="lf-go" data-testid="insp-link-add">
+              Add
+            </button>
+          </form>
+        )}
+      </div>
       <div className="privacy-note">
-        <IconShield size={18} /> You choose what to share. We never read your account.
+        <IconShield size={18} /> You choose what to share. We never read your account, and a link is only read for its format and look.
       </div>
       <div className="onb-actions">
         <button className="pill-w block" onClick={onNext} data-testid="onb-next">
-          {s.inspirations ? "Continue" : "Skip for now"}
+          {s.inspirations || s.inspoLink ? "Continue" : "Skip for now"}
         </button>
       </div>
     </>
@@ -228,10 +266,13 @@ function Inspiration({ onNext }: { onNext: () => void }) {
 function PhotoAccess({ onNext }: { onNext: () => void }) {
   const { set } = useProto();
   const [prompt, setPrompt] = useState(false);
+  const [albums, setAlbums] = useState(false);
   const answer = (v: "full" | "limited" | "none") => {
     set({ photoAccess: v });
     setPrompt(false);
-    setTimeout(onNext, 200);
+    // No access: fall back to picking one album.
+    if (v === "none") setAlbums(true);
+    else setTimeout(onNext, 200);
   };
   return (
     <>
@@ -264,7 +305,35 @@ function PhotoAccess({ onNext }: { onNext: () => void }) {
             <button className="b" onClick={() => answer("full")} data-testid="allow-full">
               Allow Full Access
             </button>
-            <button onClick={() => answer("none")}>Don't Allow</button>
+            <button onClick={() => answer("none")} data-testid="deny-access">
+              Don't Allow
+            </button>
+          </div>
+        </div>
+      )}
+      {albums && (
+        <div className="p-backdrop">
+          <div className="p-sheet" role="dialog" aria-label="Pick an album" data-testid="album-picker">
+            <div className="p-grip" />
+            <div className="share-title">Pick an album instead</div>
+            <div className="share-sub">We'll only use the photos in this album.</div>
+            {ALBUMS.map((a) => (
+              <button
+                key={a.name}
+                className="share-row"
+                onClick={() => {
+                  set({ album: a.name });
+                  setAlbums(false);
+                  setTimeout(onNext, 150);
+                }}
+              >
+                <img className="album-cover" src={photo(a.cover).src} alt="" />
+                <span className="share-txt">
+                  <b>{a.name}</b>
+                  <small>{a.count} photos</small>
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -287,6 +356,7 @@ function Payoff({
   aesthetics: string[];
   trendToTry: string | null;
 }) {
+  const album = useProto().s.album;
   // The picked trend becomes the first idea.
   const ideas = [...(trendToTry ? [trendSuggestion(trendToTry)] : []), ...SUGGESTIONS].slice(0, 3);
   // One main word per picked aesthetic first ("film", "warm", …), then their second words.
@@ -303,7 +373,7 @@ function Payoff({
         <h1 className="onb-h">{words.join(", ")}</h1>
       </div>
       <p className="onb-p ways" data-testid="ways-in">{HUB.waysIn}</p>
-      <p className="onb-p">To start, here are your first 3 ideas from your recent photos:</p>
+      <p className="onb-p">To start, here are your first 3 ideas from {album ? `your “${album}” album` : "your recent photos"}:</p>
       {!ready ? (
         <div className="finding">
           <span className="spin" /> Finding ideas in {photo(SUGGESTIONS[0].photos[0]).when.toLowerCase()}'s photos…

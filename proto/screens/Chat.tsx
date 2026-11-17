@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CHAT, FORMATS, ROLL, aesthetic, photo, trend as trendById } from "../data.ts";
+import { CHAT, FORMATS, FREE_MAX_PHOTOS, ROLL, aesthetic, photo, trend as trendById } from "../data.ts";
 import { describe, parse, photosFor, type Spec } from "../brain.ts";
 import { formatWord, useProto, suggestionById, type ChatEntry } from "../store.tsx";
 import { IconBack, IconCheck, IconSend, IconSparkle, Shot, lookFor } from "../ui.tsx";
@@ -49,6 +49,12 @@ function initial(entry: ChatEntry, preferred: string[]): { spec: Spec; greet: st
 export default function Chat({ entry }: { entry: ChatEntry }) {
   const { s, set, back, push, requirePro, formatLocked, isPro, openDraft, startOwnIdea, dir } = useProto();
   const describing = entry.kind === "own" && entry.mode === "idea";
+  // Your own idea: the user chooses the photos. The AI only puts likely ones first.
+  const ownIdea = entry.kind === "own";
+  const [focus, setFocus] = useState<string[]>([]);
+  const planRef = useRef(s.plan);
+  planRef.current = s.plan;
+  const isProNow = () => planRef.current === "pro";
   const init = useMemo(() => initial(entry, s.aesthetics), [entry, s.aesthetics]);
   const key = JSON.stringify(entry);
   // Coming back with Back: restore the conversation. Opening it anew: start fresh.
@@ -68,13 +74,19 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
   const add = (m: Omit<Msg, "id">) => setMsgs((prev) => [...prev, { ...m, id: idRef.current++ }]);
 
   // AI greeting (with a short "typing" beat so it feels alive)
+  const greeted = useRef(!!saved);
+  const greetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const greet = () => {
+    if (greeted.current) return;
+    greeted.current = true;
+    clearTimeout(greetTimer.current);
+    setTyping(false);
+    add({ from: "ai", text: init.greet, picker: init.picker });
+  };
   useEffect(() => {
     if (saved) return;
-    const t = setTimeout(() => {
-      setTyping(false);
-      add({ from: "ai", text: init.greet, picker: init.picker });
-    }, 700);
-    return () => clearTimeout(t);
+    greetTimer.current = setTimeout(greet, 700);
+    return () => clearTimeout(greetTimer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -86,7 +98,7 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
 
   const generate = (sp: Spec) => {
     if (sp.photos.length === 0) {
-      aiSay("Pick at least one photo first, or tap “Pick for me”.", CHAT.quickPhoto);
+      aiSay(ownIdea ? "Choose at least one photo below first." : "Pick at least one photo first, or tap “Pick for me”.", ownIdea ? CHAT.quickAfterChange : CHAT.quickPhoto, ownIdea);
       return;
     }
     // Your own idea (described or from photos): Free preview, Pro full post.
@@ -95,8 +107,13 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
     // Weekly ideas and trends: 1 free draft a week, carousel only.
     const go = () => {
       set((st) => ({ freeDraftsUsed: st.plan === "free" ? st.freeDraftsUsed + 1 : st.freeDraftsUsed }));
+      // Free: one full post a week of up to FREE_MAX_PHOTOS photos.
+      const capped = !isProNow() && sp.photos.length > FREE_MAX_PHOTOS;
+      const final = capped ? { ...sp, photos: sp.photos.slice(0, FREE_MAX_PHOTOS) } : sp;
       // Posts made from a trend keep the trend's name ("Me & me, 10 years ago · Reel").
-      openDraft(sp, entry.kind === "trend" ? trendById(entry.id).name : null);
+      openDraft(final, entry.kind === "trend" ? trendById(entry.id).name : null, {
+        note: capped ? fill(CHAT.freeCap, { max: FREE_MAX_PHOTOS, n: sp.photos.length }) : undefined,
+      });
     };
     if (formatLocked(sp.format)) return requirePro(`${FORMATS[sp.format].label.split(" ")[0]}s are part of Pro`, go);
     if (!isPro && s.freeDraftsUsed >= 1) return requirePro("You've used this week's free draft", go);
@@ -116,8 +133,13 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
     const t = raw.trim();
     if (!t) return;
     setText("");
+    greet(); // if they type before the greeting appears, show it first
     add({ from: "me", text: t });
-    const r = parse(t, spec, s.aesthetics);
+    const parsed = parse(t, spec, s.aesthetics);
+    // Own idea: photo topics ("from Friday", "like the link") only reorder the picker.
+    const photosTouched = parsed.spec.photos.join() !== spec.photos.join();
+    const r = ownIdea && photosTouched ? { ...parsed, spec: { ...parsed.spec, photos: spec.photos } } : parsed;
+    if (ownIdea && photosTouched) setFocus(parsed.spec.photos);
     setSpec(r.spec);
     if (r.action === "templates" && !r.generate) {
       aiSay(CHAT.toTemplates, CHAT.quickAfterChange);
@@ -129,7 +151,11 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
       return;
     }
     if (r.action === "link" && !r.generate) {
-      aiSay(`${CHAT.linkApplied} ${r.spec.photos.length} photos as a ${formatWord(r.spec.format)}. Ready when you are.`, CHAT.quickAfterChange, true);
+      aiSay(
+        ownIdea ? `${CHAT.linkApplied} ${CHAT.choosePhotos}` : `${CHAT.linkApplied} ${r.spec.photos.length} photos as a ${formatWord(r.spec.format)}. Ready when you are.`,
+        CHAT.quickAfterChange,
+        true,
+      );
       return;
     }
     if (r.generate) {
@@ -138,6 +164,12 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
       return;
     }
     if (r.understood) {
+      if (ownIdea && r.spec.photos.length === 0) {
+        // Photos aren't chosen for you here: only mention the look and format changes.
+        const said = describe(r.changes.filter((c) => !c.includes("photo")));
+        aiSay(`${said ? `${said} ` : ""}A ${formatWord(r.spec.format)} in ${aesthetic(r.spec.aesthetic).name.toLowerCase()}. ${CHAT.choosePhotos}`, CHAT.quickAfterChange, true);
+        return;
+      }
       const pickerAgain = r.changes.some((c) => c.includes("photo"));
       aiSay(`${describe(r.changes)} ${r.spec.photos.length} photos in ${aesthetic(r.spec.aesthetic).name.toLowerCase()}. Ready when you are.`, CHAT.quickAfterChange, pickerAgain);
       return;
@@ -173,9 +205,11 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
     const day = photo(spec.photos[0] ?? "")?.when;
     // Trend images that aren't in the camera roll (face profile, "now / then" frames) come first.
     const extra = spec.photos.filter((id) => !ROLL.some((p) => p.id === id)).map(photo);
-    const first = ROLL.filter((p) => spec.photos.includes(p.id) || (day && p.when === day));
-    return [...extra, ...first, ...ROLL.filter((p) => !first.includes(p))].slice(0, 18);
-  }, [spec.photos]);
+    // Own idea: the photos that fit the description come first (but aren't selected).
+    const suggested = ROLL.filter((p) => focus.includes(p.id));
+    const first = ROLL.filter((p) => !suggested.includes(p) && (spec.photos.includes(p.id) || (day && p.when === day)));
+    return [...extra, ...suggested, ...first, ...ROLL.filter((p) => !first.includes(p) && !suggested.includes(p))].slice(0, 18);
+  }, [spec.photos, focus]);
 
   return (
     <div className="scr chat">
@@ -211,7 +245,9 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
                     );
                   })}
                   <div className="pk-foot">
-                    {spec.photos.length} selected · {photo(spec.photos[0] ?? "").when || "your camera roll"}
+                    {ownIdea
+                      ? `${spec.photos.length} chosen · ${focus.length ? "the ones that fit are first" : "tap the photos you want"}`
+                      : `${spec.photos.length} selected · ${photo(spec.photos[0] ?? "").when || "your camera roll"}`}
                   </div>
                 </div>
               )}
@@ -260,7 +296,8 @@ export default function Chat({ entry }: { entry: ChatEntry }) {
           </button>
         </form>
         <button className="make" onClick={() => generate(spec)} data-testid="make-draft">
-          <IconCheck size={18} /> Make the draft · {spec.photos.length} photos
+          <IconCheck size={18} /> Make the draft ·{" "}
+          {!isPro && !ownIdea && spec.photos.length > FREE_MAX_PHOTOS ? `${FREE_MAX_PHOTOS} of ${spec.photos.length} photos · Free` : `${spec.photos.length} photos`}
         </button>
       </div>
     </div>

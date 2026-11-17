@@ -30,7 +30,7 @@ export default function Paywall({ slots, onStart, onClose }: { slots: Slot[]; on
           Start 7-day free trial
         </button>
         <p className="note" style={{ textAlign: "center", marginTop: 10 }}>
-          Mock paywall, nothing is charged. Then €X/week, cancel anytime.
+          Mock paywall, nothing is charged. Then $4.99/week, cancel anytime.
         </p>
         <button className="link" style={{ display: "block", margin: "0 auto" }} onClick={onClose}>
           Not now

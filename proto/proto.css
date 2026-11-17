@@ -594,3 +594,30 @@
 .yp-img .fmt { font-size: 10px; padding: 3px 7px; left: 6px; bottom: 6px; }
 .yp-name { font-size: 12.5px; font-weight: 600; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yp-meta { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk.fits::after { content: "fits"; position: absolute; left: 4px; bottom: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: rgba(0,0,0,.6); padding: 1px 5px; border-radius: 5px; }
+.big-chips.sm .big-chip { padding: 10px 14px; font-size: 14.5px; }
+.insp-link { margin-top: 12px; }
+.insp-link-card { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.insp-link-card svg { color: var(--accent-text); flex: 0 0 auto; }
+.insp-link-card b { display: block; font-size: 14px; font-weight: 600; }
+.insp-link-card small { color: var(--muted); font-size: 12.5px; }
+.album-cover { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; flex: 0 0 46px; }
+.chip.topic { background: transparent; border: 1px solid var(--line); }
+.rise-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.proto .rise-hide { border: 0; background: none; color: var(--muted) !important; font-size: 12px; padding: 2px 4px; }
+
+/* ---------- Creator Studio slide in Remini's onboarding ---------- */
+.intro { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.intro-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin: 6px 0 18px; }
+.intro-k { color: var(--muted); font-size: 13px; font-weight: 600; }
+.intro-stack { position: relative; width: 250px; height: 230px; margin-bottom: 18px; }
+.intro-ph { position: absolute; top: 10px; width: 130px; aspect-ratio: 4/5; border-radius: 20px; border: 3px solid #000; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+.intro-ph.i0 { left: 0; transform: rotate(-9deg); top: 30px; }
+.intro-ph.i1 { left: 60px; z-index: 1; }
+.intro-ph.i2 { right: 0; transform: rotate(9deg); top: 30px; }
+.intro-h { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; margin: 10px 0 6px; }
+.intro-p { color: var(--soft); font-size: 16px; line-height: 1.45; margin: 0 10px 16px; }
+.intro-list { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; text-align: left; width: 100%; }
+.intro-list li { display: flex; gap: 10px; align-items: center; background: var(--surface); padding: 12px 14px; border-radius: 16px; font-size: 14.5px; }
+.intro-list svg { color: var(--accent-text); flex: 0 0 auto; }
+.intro-actions { width: 100%; margin-top: auto; padding-top: 16px; }

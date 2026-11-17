@@ -5,17 +5,24 @@
  */
 
 // ---------------------------------------------------------------- user
+/** Persona from the product spec: Mia, 24, Austin, a marketing assistant with ~2,000 followers. */
 export const USER = {
   name: "Mia",
+  age: 24,
+  city: "Austin, TX",
+  followers: "2.1k",
   handle: "@mia.moments",
   avatar: "/p/me.jpg", // also the AI face profile "Person 1"
 };
 
+/** Creator Studio sits inside Remini's existing weekly subscription (about $5). */
 export const PRICING = {
   trialDays: 3,
-  weekly: "€9.99",
-  yearly: "€59.99",
+  weekly: "$4.99",
 };
+
+/** Free: one full post a week, of up to this many photos. */
+export const FREE_MAX_PHOTOS = 3;
 
 // ---------------------------------------------------------------- photos ("camera roll")
 export type Photo = { id: string; src: string; when: string; tags: string[] };
@@ -165,6 +172,15 @@ export const FORMATS: Record<Format, { label: string; ratio: string; platforms: 
 };
 
 export const PLATFORMS = ["Instagram", "TikTok", "WhatsApp Status"];
+/** What the creator posts about (part of the profile). */
+export const TOPICS = ["Travel", "Food", "Friends", "Nightlife", "Fashion", "Beauty", "Fitness", "Everyday"];
+/** Fallback when photo access is denied: pick an album instead. */
+export const ALBUMS = [
+  { name: "Recents", count: 312, cover: "sat-sunset" },
+  { name: "Weekend trip", count: 86, cover: "sat-tram" },
+  { name: "Friday night", count: 41, cover: "fri-cheers" },
+  { name: "Food", count: 57, cover: "wk-toast" },
+];
 export const GOALS = [
   { id: 1, label: "1× a week" },
   { id: 3, label: "3× a week" },
@@ -332,6 +348,7 @@ export const HOME = {
     { label: "Cozy", src: "/p/ex-winter.jpg" },
   ],
   lockWallpaper: "/p/wall.jpg",
+  lockDate: "Sunday 15 November", // weekly ideas arrive on Sunday
 };
 
 // ---------------------------------------------------------------- notifications
@@ -399,13 +416,15 @@ export const TEMPLATES: Template[] = [
 export const template = (id: string) => TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];
 
 // ---------------------------------------------------------------- Free vs Pro
+/** Same rows and order as the product spec's Free vs Pro table. */
 export const FREE_VS_PRO: [string, string, string][] = [
-  ["Your own idea (link, description or template)", "Free preview", "Full post"],
-  ["Weekly ideas from your photos", "Enhance-only preview", "Full trend look"],
-  ["Full drafts from weekly ideas", "1 a week", "Unlimited"],
-  ["Formats", "Carousel", "Carousel, Reel, Story"],
-  ["Edits by asking", "3 per draft", "Unlimited"],
-  ["“Made with Remini” mark", "Yes", "No"],
+  ["Profile and weekly ideas", "With quick previews", "Full trend look"],
+  ["Full posts", `1 a week, up to ${FREE_MAX_PHOTOS} photos`, "Unlimited"],
+  ["Formats", "Carousel", "Carousel, Reel/TikTok, Story/Status"],
+  ["Edits by asking", "A few (3 per post)", "Unlimited"],
+  ["“Made with Remini” mark", "Small mark", "None"],
+  ["Trend alerts", "Preview", "Full set"],
+  ["Your own idea (link, description or template)", "Preview", "Full post"],
 ];
 
 // ---------------------------------------------------------------- explore styles
@@ -459,13 +478,18 @@ export const EXPLORE: ExploreItem[] = [
 ];
 
 /** Items for a filter. "For you" puts the user's aesthetics and trend pick first. */
-export function exploreItems(filter: string, mine: { aesthetics: string[]; trendToTry: string | null }): ExploreItem[] {
-  if (filter === "Trending") return EXPLORE.filter((x) => x.kind === "trend");
-  if (filter === "Aesthetics") return EXPLORE.filter((x) => x.kind === "style");
-  if (filter === "Templates") return EXPLORE.filter((x) => x.kind === "template");
-  if (filter === "Reels") return EXPLORE.filter((x) => x.format === "reel");
+export function exploreItems(filter: string, mine: { aesthetics: string[]; trendToTry: string | null; dismissedTrends?: string[] }): ExploreItem[] {
+  const all = EXPLORE.filter((x) => !(x.kind === "trend" && mine.dismissedTrends?.includes(x.ref)));
+  return pick(all, filter, mine);
+}
+
+function pick(items: ExploreItem[], filter: string, mine: { aesthetics: string[]; trendToTry: string | null }): ExploreItem[] {
+  if (filter === "Trending") return items.filter((x) => x.kind === "trend");
+  if (filter === "Aesthetics") return items.filter((x) => x.kind === "style");
+  if (filter === "Templates") return items.filter((x) => x.kind === "template");
+  if (filter === "Reels") return items.filter((x) => x.format === "reel");
   const score = (x: ExploreItem) => (x.ref === mine.trendToTry ? 3 : 0) + (mine.aesthetics.includes(x.aesthetic) ? 2 : 0) + (x.kind === "trend" ? 1 : 0);
-  return [...EXPLORE].sort((a, b) => score(b) - score(a));
+  return [...items].sort((a, b) => score(b) - score(a));
 }
 
 // ---------------------------------------------------------------- chat script
@@ -486,7 +510,11 @@ export const CHAT = {
   posted: "Posted! That's {done} of {goal} this week.",
   // bring your own idea
   describePlaceholder: "a moody night-out Reel from Friday",
-  greetDescribe: "Describe your vision in a few words, like “a moody night-out Reel from Friday”. I'll pick the photos.",
+  greetDescribe: "Describe your vision in a few words, like “a moody night-out Reel from Friday”. Then choose the photos you want in it.",
+  choosePhotos: "Now choose the photos you want in it. I put the ones that fit first.",
+  freeCap: "Free posts use up to {max} photos, so I kept your first {max}. Pro makes all {n}.",
+  variation: "Variation {v}: same look, a different take on colour and order.",
+  trendHidden: "Got it. Fewer trends like this.",
   quickDescribe: ["A moody night-out Reel from Friday", "Make it like the link", "Use a template"],
   linkApplied: "Got it: same format and look as the link, made with your photos.",
   toTemplates: "Here are templates that fit you. Pick one and I'll do the rest.",

@@ -18,7 +18,8 @@ export default function DemoPanel() {
   const newUser = () => {
     closeSheet();
     set({ ...INITIAL });
-    reset({ name: "home" });
+    // New users meet Creator Studio inside Remini's own onboarding.
+    reset({ name: "intro" });
   };
   const returning = () => {
     closeSheet();
@@ -35,7 +36,7 @@ export default function DemoPanel() {
       <div className="dp-switch" role="radiogroup" aria-label="User">
         <button role="radio" aria-checked={!s.onboarded} className={!s.onboarded ? "on" : ""} onClick={newUser} data-testid="dp-new">
           <b>New user</b>
-          <small>Starts with onboarding</small>
+          <small>Remini onboarding → Creator Studio setup</small>
         </button>
         <button role="radio" aria-checked={s.onboarded} className={s.onboarded ? "on" : ""} onClick={returning} data-testid="dp-returning">
           <b>Returning user</b>

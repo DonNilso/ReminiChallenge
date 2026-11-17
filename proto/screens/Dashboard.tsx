@@ -1,19 +1,30 @@
 "use client";
 
 import { AESTHETICS, FORMATS, HUB, PAST_POSTS, SUGGESTIONS, TRENDS, USER, aesthetic, photo, trendSuggestion, type Suggestion } from "../data.ts";
+import { useState } from "react";
+import { CHAT } from "../data.ts";
 import { useProto } from "../store.tsx";
 import { GoalRing, IconBack, IconIdea, IconLayers, IconLock, IconPlay, IconTrend, Shot, longPress, lookFor } from "../ui.tsx";
 import { LinkField } from "./OwnIdea.tsx";
 import { ExploreSection } from "./Explore.tsx";
 
 export default function Dashboard({ highlight }: { highlight?: string }) {
-  const { s, push, back, isPro, openSheet, requirePro, formatLocked } = useProto();
+  const { s, set, push, back, isPro, openSheet, requirePro, formatLocked } = useProto();
   const goalLabel = s.goal === 7 ? "daily" : `${s.goal}×`;
   const left = Math.max(0, s.goal - s.posted);
   // Suggestions in the user's chosen platforms first.
   const suggestions = SUGGESTIONS.filter((x) => FORMATS[x.format].platforms.some((p) => s.platforms.includes(p)) || x.format === "carousel");
   const allPosts = [...s.madePosts, ...PAST_POSTS];
-  const rising = [...TRENDS].sort((a, b) => Number(b.id === s.trendToTry) - Number(a.id === s.trendToTry) || b.growth - a.growth);
+  const rising = [...TRENDS]
+    .filter((t) => !s.dismissedTrends.includes(t.id))
+    .sort((a, b) => Number(b.id === s.trendToTry) - Number(a.id === s.trendToTry) || b.growth - a.growth);
+  const [toast, setToast] = useState<string | null>(null);
+  const hideTrend = (id: string) => {
+    set((st) => ({ dismissedTrends: [...st.dismissedTrends, id], trendToTry: st.trendToTry === id ? null : st.trendToTry }));
+    setToast(CHAT.trendHidden);
+    setTimeout(() => setToast(null), 1800);
+  };
+  const short = (p: string) => (p === "Instagram" ? "IG" : p === "WhatsApp Status" ? "Status" : p);
 
   return (
     <div className="scr dash">
@@ -45,8 +56,8 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
                 Edit
               </button>
             </div>
-            <div className="prof-sub">
-              {USER.handle} · {s.platforms.join(", ")}
+            <div className="prof-sub" data-testid="persona">
+              {USER.handle} · {USER.followers} followers · {s.platforms.map(short).join(", ")}
             </div>
           </div>
           <div className="goal-mini" title={left === 0 ? "Goal reached" : `Your goal: ${goalLabel} a week · ${left} to go`}>
@@ -60,13 +71,18 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         </div>
         <div className="prof-line">
           <div className="chips mini">
-            {/* Two chips fit next to the posts strip; with more, show one and a count. */}
-            {s.aesthetics.slice(0, s.aesthetics.length > 2 ? 1 : 2).map((id) => (
+            {/* One look and one topic fit next to the posts strip; the rest as a count (all in Edit). */}
+            {s.aesthetics.slice(0, 1).map((id) => (
               <span key={id} className="chip">
                 {aesthetic(id).name}
               </span>
             ))}
-            {s.aesthetics.length > 2 && <span className="chip">+{s.aesthetics.length - 1}</span>}
+            {s.topics.slice(0, 1).map((t) => (
+              <span key={t} className="chip topic">
+                {t}
+              </span>
+            ))}
+            {s.aesthetics.length + s.topics.length > 2 && <span className="chip">+{s.aesthetics.length + s.topics.length - Math.min(1, s.aesthetics.length) - Math.min(1, s.topics.length)}</span>}
           </div>
           <div className="past-mini" data-testid="past-posts" title={`Your posts: ${allPosts.length} made with Creator Studio`}>
             {allPosts.slice(0, 4).map((pp, i) => (
@@ -150,9 +166,14 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
                   <IconTrend size={15} /> +{t.growth}% this week
                 </div>
               </div>
-              <button className="pill-o sm" onClick={() => push({ name: "chat", entry: { kind: "trend", id: t.id } })}>
-                Try it
-              </button>
+              <div className="rise-actions">
+                <button className="pill-o sm" onClick={() => push({ name: "chat", entry: { kind: "trend", id: t.id } })}>
+                  Try it
+                </button>
+                <button className="rise-hide" onClick={() => hideTrend(t.id)} aria-label={`Hide ${t.name}`} data-testid={`hide-${t.id}`}>
+                  Hide
+                </button>
+              </div>
             </div>
             <div className="rise-ex">
               {t.examples.map((e) => (
@@ -189,6 +210,7 @@ export default function Dashboard({ highlight }: { highlight?: string }) {
         ))}
       </div>
       <div style={{ height: 40 }} />
+      {toast && <div className="p-toast">{toast}</div>}
     </div>
   );
 }

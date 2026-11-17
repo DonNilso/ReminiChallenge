@@ -18,7 +18,7 @@ export default function Lock() {
   return (
     <div className="scr lock" style={{ backgroundImage: `url(${HOME.lockWallpaper})` }} data-testid="lock">
       <div className="lock-shade" />
-      <div className="lock-date">Monday 17 November</div>
+      <div className="lock-date">{HOME.lockDate}</div>
       <div className="lock-time">9:41</div>
       <div className="lock-notes">
         <button className="note-card" onClick={openReady} data-testid="notif-ready">

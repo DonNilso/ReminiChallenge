@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AESTHETICS, FORMATS, FREE_VS_PRO, GOALS, LINK_DEMO, PLATFORMS, PRICING, SUGGESTIONS, TEMPLATES, TRENDS, USER, aesthetic, photo } from "../data.ts";
+import { AESTHETICS, FORMATS, FREE_VS_PRO, GOALS, LINK_DEMO, PLATFORMS, PRICING, SUGGESTIONS, TEMPLATES, TOPICS, TRENDS, USER, aesthetic, photo } from "../data.ts";
 import { INITIAL, useProto, type Screen } from "../store.tsx";
 import { IconCheck, IconLock, SheetFrame, Shot } from "../ui.tsx";
 
@@ -143,6 +143,7 @@ export function DebugMenu() {
   };
   const jumps: [string, () => void][] = [
     ["Lock screen (notifications)", () => go({ name: "lock" })],
+    ["Remini onboarding: Creator Studio slide", () => go({ name: "intro" })],
     ["Remini home", () => go({ name: "home" })],
     ...["a Face", "b Platforms", "c Aesthetics", "d Trend to try", "e Inspiration", "f Photo access", "g Payoff"].map(
       (l, i) => [`Onboarding ${l}`, () => go({ name: "onboarding", step: i })] as [string, () => void],
@@ -229,9 +230,9 @@ export function DebugMenu() {
 /** Change the profile set in onboarding: face, aesthetics, platforms, goal, trend to try. */
 export function EditProfile() {
   const { s, set, closeSheet } = useProto();
-  const [d, setD] = useState({ aesthetics: s.aesthetics, platforms: s.platforms, goal: s.goal, trendToTry: s.trendToTry });
+  const [d, setD] = useState({ aesthetics: s.aesthetics, platforms: s.platforms, topics: s.topics, goal: s.goal, trendToTry: s.trendToTry });
   const [flash, setFlash] = useState(false);
-  const toggle = (key: "aesthetics" | "platforms", v: string) =>
+  const toggle = (key: "aesthetics" | "platforms" | "topics", v: string) =>
     setD((x) => ({ ...x, [key]: x[key].includes(v) ? x[key].filter((y) => y !== v) : [...x[key], v] }));
   const save = () => {
     set({ ...d });
@@ -246,8 +247,12 @@ export function EditProfile() {
             <img src={USER.avatar} alt="" />
           </div>
           <div style={{ flex: 1 }}>
-            <b>Person 1</b>
-            <small>Your AI face profile</small>
+            <b>
+              {USER.name}, {USER.age} · {USER.city}
+            </b>
+            <small>
+              {USER.handle} · {USER.followers} followers · AI face profile “Person 1”
+            </small>
           </div>
           <button
             className="pill-o sm"
@@ -274,6 +279,15 @@ export function EditProfile() {
           {PLATFORMS.map((p) => (
             <button key={p} className={`ep-chip${d.platforms.includes(p) ? " on" : ""}`} onClick={() => toggle("platforms", p)} aria-pressed={d.platforms.includes(p)}>
               {p}
+            </button>
+          ))}
+        </div>
+
+        <div className="ep-label">What you post about</div>
+        <div className="ep-chips">
+          {TOPICS.map((t) => (
+            <button key={t} className={`ep-chip${d.topics.includes(t) ? " on" : ""}`} onClick={() => toggle("topics", t)} aria-pressed={d.topics.includes(t)}>
+              {t}
             </button>
           ))}
         </div>

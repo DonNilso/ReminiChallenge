@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CHAT, FORMATS, aesthetic, photo, type Format } from "../data.ts";
+import { CHAT, FORMATS, FREE_MAX_PHOTOS, aesthetic, photo, type Format } from "../data.ts";
 import { describe, nextAesthetic, parse, type Spec } from "../brain.ts";
 import { FREE_EDITS, draftTitle, useProto } from "../store.tsx";
 import { IconBack, IconLock, IconMusic, IconRefresh, IconSend, IconSparkle, Shot } from "../ui.tsx";
@@ -15,7 +15,7 @@ export default function Draft() {
   const [generating, setGenerating] = useState(true);
   const [step, setStep] = useState(0);
   const [updating, setUpdating] = useState(false);
-  const [ai, setAi] = useState<string>(CHAT.draftReady);
+  const [ai, setAi] = useState<string>(s.draft?.note ? `${s.draft.note} ${CHAT.draftReady}` : CHAT.draftReady);
   const [text, setText] = useState("");
 
   // Generating state: a short, staged animation.
@@ -38,12 +38,13 @@ export default function Draft() {
   const mark = !isPro;
   const editsLeft = isPro ? Infinity : Math.max(0, FREE_EDITS - draft.edits);
 
-  const applySpec = (next: Spec, reply: string) => {
+  const applySpec = (next: Spec, reply: string, variation?: number) => {
     setUpdating(true);
     setTimeout(() => {
       set((st) => ({
         draft: st.draft && {
           ...st.draft,
+          variation: variation ?? st.draft.variation,
           spec: next,
           title: draftTitle(next, st.draft.name, aesthetic(next.aesthetic).name),
           edits: st.draft.edits + 1,
@@ -68,6 +69,10 @@ export default function Draft() {
         setAi("Try something like “warmer”, “moodier”, “swap the 2nd photo” or “5 photos”.");
         return;
       }
+      // Free: full posts have up to FREE_MAX_PHOTOS photos.
+      if (!isPro && r.spec.photos.length > FREE_MAX_PHOTOS) {
+        return requirePro(`Posts with more than ${FREE_MAX_PHOTOS} photos are part of Pro`, () => applySpec(r.spec, `${describe(r.changes)} How's this?`));
+      }
       applySpec(r.spec, `${describe(r.changes)} How's this?`);
     };
     if (editsLeft <= 0) return requirePro("Unlimited edits by asking are part of Pro", run);
@@ -77,6 +82,21 @@ export default function Draft() {
   const anotherLook = () => {
     const next = { ...spec, aesthetic: nextAesthetic(spec.aesthetic, s.aesthetics) };
     const go = () => applySpec(next, `Here it is in ${aesthetic(next.aesthetic).name.toLowerCase()}. Better?`);
+    if (editsLeft <= 0) return requirePro("Unlimited edits by asking are part of Pro", go);
+    go();
+  };
+
+  // Several variations per idea: same look, a different take on colour and photo order.
+  const anotherVariation = () => {
+    const v = ((draft.variation ?? 1) % 3) + 1;
+    const presets = [
+      { warmth: 0, mood: 0, bright: 0 },
+      { warmth: 1, mood: 0, bright: 1 },
+      { warmth: -1, mood: 1, bright: 0 },
+    ];
+    const rotated = [...spec.photos.slice(1), spec.photos[0]];
+    const next = { ...spec, ...presets[v - 1], photos: v === 1 ? spec.photos : rotated };
+    const go = () => applySpec(next, CHAT.variation.replace("{v}", String(v)), v);
     if (editsLeft <= 0) return requirePro("Unlimited edits by asking are part of Pro", go);
     go();
   };
@@ -156,6 +176,9 @@ export default function Draft() {
         <div className="quick">
           <button className="qr accent" onClick={anotherLook} data-testid="another-look">
             <IconRefresh size={14} /> Try another look
+          </button>
+          <button className="qr" onClick={anotherVariation} data-testid="variation">
+            Another variation · {draft.variation ?? 1}/3
           </button>
           {CHAT.quickDraft.map((q) => (
             <button key={q} className="qr" onClick={() => refine(q)}>
